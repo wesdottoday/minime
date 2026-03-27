@@ -1,0 +1,22 @@
+baseURL = "https://example.com/"
+languageCode = "en-us"
+title = "Your Name"
+
+[params]
+  author = "Your Name"
+  description = "A short bio about yourself goes here."
+  headshot = "/images/headshot.jpg"
+  copyright = "Your Name"
+
+[taxonomies]
+  tag = "tags"
+
+[markup]
+  [markup.highlight]
+    style = "friendly"
+    noClasses = true
+    lineNos = false
+    guessSyntax = true
+
+[outputs]
+  home = ["HTML", "RSS"]

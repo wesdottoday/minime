@@ -1,0 +1,20 @@
+{{ define "main" }}
+<section class="home-intro">
+  {{ with .Site.Params.headshot }}
+  <img src="{{ . }}" alt="{{ $.Site.Params.author }}" class="headshot">
+  {{ end }}
+  <h1>{{ .Site.Params.author }}</h1>
+  <p class="bio">{{ .Site.Params.description }}</p>
+</section>
+<section class="home-posts">
+  <h2>Recent Posts</h2>
+  <ul class="post-list">
+    {{ range where .Site.RegularPages "Section" "posts" }}
+    <li>
+      <a href="{{ .Permalink }}">{{ .Title }}</a>
+      <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "01/02/2006" }}</time>
+    </li>
+    {{ end }}
+  </ul>
+</section>
+{{ end }}
