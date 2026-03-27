@@ -2,7 +2,7 @@
 title: "About"
 ---
 
-I'm Wes Kennedy — a systems archaeologist by instinct, technical marketer by current trade.
+I'm Wes Kennedy — a systems archaeologist by instinct, technical marketer by trade.
 
 My default mode is reverse-engineering: I walk into any system — technical, mechanical, organizational — and start reading the decisions frozen inside it. How it got here. Where it's drifted. Where it's headed. I've been doing this since before I had words for it, across farming, electrical work, woodworking, enterprise infrastructure, and AI datacenter architecture. The domain changes. The underlying work doesn't.
 
