@@ -1,12 +1,12 @@
 baseURL = "https://example.com/"
 languageCode = "en-us"
-title = "Your Name"
+title = "Wes Kennedy"
 
 [params]
-  author = "Your Name"
-  description = "A short bio about yourself goes here."
+  author = "Wes Kennedy"
+  description = "Systems archaeologist by instinct, technical marketer by current trade."
   headshot = "/images/headshot.jpg"
-  copyright = "Your Name"
+  copyright = "Wes Kennedy"
 
 [taxonomies]
   tag = "tags"
