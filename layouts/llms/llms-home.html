@@ -1,0 +1,73 @@
+{{ define "main" }}
+<section class="llms-landing">
+  <header class="llms-landing-header">
+    <h1>{{ .Title }}</h1>
+    <p class="llms-intro">{{ .Description }}</p>
+    <button id="clear-progress" class="clear-progress-btn">Clear progress</button>
+  </header>
+
+  <div class="llms-map">
+    {{ .Content }}
+  </div>
+
+  {{ range seq 0 4 }}
+    {{ $tier := . }}
+    {{ $nodes := where $.Site.RegularPages.ByWeight "Params.tier" $tier }}
+    {{ with $nodes }}
+    <div class="llms-tier">
+      <h2>{{ if eq $tier 0 }}Root{{ else }}Tier {{ $tier }}{{ end }}</h2>
+      <ul class="llms-node-list">
+        {{ range . }}
+        <li class="llms-node-card" data-href="{{ .RelPermalink }}">
+          <a href="{{ .RelPermalink }}" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">{{ .Title }}</span>
+            {{ with .Params.summary }}<p class="node-summary">{{ . }}</p>{{ end }}
+          </a>
+        </li>
+        {{ end }}
+      </ul>
+    </div>
+    {{ end }}
+  {{ end }}
+</section>
+
+<script>
+(function() {
+  var key = 'llms-visited';
+  var visited = JSON.parse(localStorage.getItem(key) || '[]');
+
+  // Mark already-visited cards
+  document.querySelectorAll('.llms-node-card').forEach(function(card) {
+    var href = card.getAttribute('data-href');
+    if (visited.indexOf(href) !== -1) {
+      card.classList.add('is-read');
+    }
+  });
+
+  // Track clicks
+  document.querySelectorAll('.node-card-link').forEach(function(link) {
+    link.addEventListener('click', function() {
+      var href = link.getAttribute('href');
+      if (visited.indexOf(href) === -1) {
+        visited.push(href);
+        localStorage.setItem(key, JSON.stringify(visited));
+      }
+    });
+  });
+
+  // Clear progress button
+  var btn = document.getElementById('clear-progress');
+  if (btn) {
+    if (visited.length === 0) btn.style.display = 'none';
+    btn.addEventListener('click', function() {
+      localStorage.removeItem(key);
+      document.querySelectorAll('.llms-node-card.is-read').forEach(function(card) {
+        card.classList.remove('is-read');
+      });
+      btn.style.display = 'none';
+    });
+  }
+})();
+</script>
+{{ end }}

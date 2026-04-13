@@ -1,0 +1,53 @@
+- term: "warp"
+  short: "Group of 32 GPU threads executing the same instruction in lockstep"
+  long: "A group of 32 threads that execute the same instruction at the same time on a GPU. The smallest unit of execution the GPU actually schedules."
+
+- term: "CUDA"
+  type: "acronym"
+  expansion: "Compute Unified Device Architecture"
+
+- term: "BPE"
+  type: "acronym"
+  expansion: "Byte Pair Encoding"
+
+- term: "HBM"
+  type: "acronym"
+  expansion: "High Bandwidth Memory"
+  short: "High Bandwidth Memory — the fast DRAM on GPUs"
+
+- term: "KV cache"
+  short: "Stored key/value vectors from previous tokens, reused during decode to avoid recomputation"
+
+- term: "FFN"
+  type: "acronym"
+  expansion: "Feed-Forward Network"
+  short: "Feed-Forward Network — the per-token transformation step in each model layer"
+
+- term: "GQA"
+  type: "acronym"
+  expansion: "Grouped-Query Attention"
+  short: "Grouped-Query Attention — shares K/V heads across groups of query heads to reduce KV cache size"
+
+- term: "MQA"
+  type: "acronym"
+  expansion: "Multi-Query Attention"
+  short: "Multi-Query Attention — all query heads share a single set of K/V heads"
+
+- term: "EOS"
+  type: "acronym"
+  expansion: "End of Sequence"
+  short: "End of Sequence — special token that signals the model to stop generating"
+
+- term: "RLHF"
+  type: "acronym"
+  expansion: "Reinforcement Learning from Human Feedback"
+
+- term: "FLOPs"
+  type: "acronym"
+  expansion: "Floating-Point Operations"
+  short: "Floating-Point Operations — the basic unit of neural network compute cost"
+
+- term: "SiLU"
+  type: "acronym"
+  expansion: "Sigmoid Linear Unit"
+  short: "Sigmoid Linear Unit (also called Swish) — activation function used in Llama 3"

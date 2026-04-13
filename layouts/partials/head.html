@@ -3,6 +3,7 @@
 <title>{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} &ndash; {{ .Site.Title }}{{ end }}</title>
 <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}">
 <link rel="stylesheet" href="/css/style.css">
+{{ if eq .Section "llms" }}<link rel="stylesheet" href="/css/llms.css">{{ end }}
 {{ with .OutputFormats.Get "RSS" -}}
   <link rel="alternate" type="application/rss+xml" title="{{ $.Site.Title }}" href="{{ .Permalink }}">
 {{- end }}
