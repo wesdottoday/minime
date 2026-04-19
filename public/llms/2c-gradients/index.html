@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gradients and gradient updates (how weights get their values) &ndash; Wes Kennedy</title>
+<meta name="description" content="Systems archaeologist by instinct, technical marketer by trade.">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/llms.css">
+
+</head>
+<body><header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="site-title">Wes Kennedy</a>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true">
+    <label for="menu-toggle" class="menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+    <nav class="menu-overlay">
+      <label for="menu-toggle" class="menu-close" aria-label="Close menu">&times;</label>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/llms/">LLMs</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/now/">Now</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main>
+<article class="llms-node">
+  <header class="llms-node-header">
+    <nav class="llms-breadcrumb">
+      <a href="/llms/">LLMs</a>
+      
+        
+        
+          <span class="sep">/</span>
+          <a href="http://localhost:1313/llms/1c-embeddings/">1c</a>
+        
+      
+      <span class="sep">/</span>
+      <span class="current">2c</span>
+    </nav>
+
+    <div class="llms-title-row">
+      <h1><span class="node-id-header">2c</span> Gradients and gradient updates (how weights get their values)</h1>
+      <span class="llms-status-badge llms-status-reviewed">reviewed</span>
+    </div>
+  </header>
+
+  <div class="llms-content post-content">
+    <div class="mermaid">graph LR
+    A[Training Text]:::hl --> B[Forward Pass]:::hl --> C[Prediction]:::hl --> D[Loss Calc]:::hl --> E[Backward Pass]:::hl --> F[Gradients]:::hl --> G[Weight Update]:::hl --> H["Repeat ×trillions"]:::hl
+    classDef hl fill:#2d6a4f,stroke:#1b4332,color:#d8f3dc
+    classDef default fill:#1a1a2e,stroke:#16213e,color:#e0e0e0</div>
+<p><em>Training loop — separate from inference pipeline</em></p>
+<p>Training works by repeated trial and error, automated at massive scale. Here&rsquo;s the loop:</p>
+<ol>
+<li><strong>Forward pass</strong>: Feed the model a chunk of text. It predicts the next token at each position.</li>
+<li><strong>Loss calculation</strong>: Compare the model&rsquo;s predictions to what the actual next tokens were. This is a critical point: <strong>the training data is treated as ground truth.</strong> The model doesn&rsquo;t &ldquo;know&rdquo; what&rsquo;s correct — it just knows what the training text actually said. If the next token in the training data was &ldquo;Paris,&rdquo; then &ldquo;Paris&rdquo; is the right answer, period. The <em>loss</em> is a single number measuring how far the model&rsquo;s probability distribution was from that known-correct answer — higher loss means worse predictions. This is why training data quality matters so much: the model will learn to reproduce whatever patterns exist in the data, accurate or not.</li>
+<li><strong>Backward pass (backpropagation)</strong>: This is where gradients come in. The model works backward from the loss through every layer, calculating for each weight: &ldquo;if I nudged this weight up slightly, would the loss go up or down, and by how much?&rdquo; That &ldquo;how much and in what direction&rdquo; is the <strong>gradient</strong> for that weight. It&rsquo;s a direction sign (up or down) and a magnitude (how sensitive the loss is to this weight).</li>
+<li><strong>Weight update</strong>: Nudge every weight in the direction that reduces the loss, by an amount proportional to its gradient. A weight with a large gradient gets a bigger nudge. A weight with a tiny gradient barely moves. The size of these nudges is controlled by the <strong>learning rate</strong> — a hyperparameter that determines how aggressive each update is. These updated weights are written back to the same weight matrices they came from — the embedding table, the attention matrices, the feed-forward matrices in every layer. The weights live in GPU memory (HBM) during training, and the updates happen in-place. When training is done, the final weight matrices are saved to disk as the model&rsquo;s checkpoint — that file <em>is</em> the trained model.</li>
+<li><strong>Repeat</strong> — trillions of times, across terabytes of text.</li>
+</ol>
+<p>The gradient is the compass. It doesn&rsquo;t tell you the right value for a weight — it tells you which direction to step. Each update takes one small step. Over billions of steps, the weights converge toward values that make the model good at prediction.</p>
+<p><strong>Why &ldquo;gradient&rdquo;?</strong> It&rsquo;s a calculus term — the gradient of a function tells you the direction of steepest increase. Training walks <em>downhill</em> on the loss landscape (called gradient <em>descent</em>), trying to find a valley where the loss is low. The loss landscape has one dimension per weight — so for a model like Llama 3 405B with 405 billion parameters, that&rsquo;s a 405-billion-dimensional landscape. You can&rsquo;t visualize it, but the math works the same as walking downhill on a real hill — just with incomprehensibly more directions to choose from.</p>
+<p><strong>Performance profile:</strong> Training runs on <strong>GPUs</strong> and hits all three bounds at different stages. The forward pass (step 1) is <strong>compute-bound</strong> — it&rsquo;s the same matmuls as inference, across many tokens in parallel. The backward pass (step 3) is also <strong>compute-bound</strong> and costs roughly <strong>2× the forward pass</strong> (it has to compute gradients for every weight through every layer). But training is also heavily <strong>memory-bound</strong>: the backward pass needs the intermediate activations from the forward pass to compute gradients, so all of those must be stored in HBM. For Llama 3 70B, the model weights alone are ~140 GB in FP16, but the optimizer states (which track momentum and variance per weight, e.g., Adam stores 2 extra copies) add another ~280 GB, and the stored activations add more on top. This is why training requires far more GPU memory than inference — and why large models are trained across hundreds or thousands of GPUs. At multi-GPU scale, training also becomes <strong>network-bound</strong>: after each backward pass, every GPU must synchronize its gradients with every other GPU before updating weights. This gradient synchronization (via all-reduce operations over NVLink and InfiniBand) becomes the dominant bottleneck at large cluster sizes.</p>
+
+  </div>
+
+  <nav class="llms-tree-nav">
+    
+      
+      
+      <div class="llms-nav-parent">
+        <span class="nav-label">Up:</span>
+        <a href="http://localhost:1313/llms/1c-embeddings/">1c &mdash; What are embeddings and how are they created?</a>
+      </div>
+      
+    
+
+    
+
+    <div class="llms-nav-map">
+      <a href="/llms/">&larr; Back to the map</a>
+    </div>
+  </nav>
+</article>
+</main><footer class="site-footer">
+  <p>&copy; 2026 Wes Kennedy. All rights reserved.</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2d6a4f',
+      primaryTextColor: '#d8f3dc',
+      primaryBorderColor: '#1b4332',
+      lineColor: '#7c3aed',
+      secondaryColor: '#e76f51',
+      tertiaryColor: '#1a1a2e',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: '14px'
+    }
+  });
+</script>
+
+</body>
+</html>

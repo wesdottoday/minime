@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How does the model know when to stop? &ndash; Wes Kennedy</title>
+<meta name="description" content="Systems archaeologist by instinct, technical marketer by trade.">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/llms.css">
+
+</head>
+<body><header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="site-title">Wes Kennedy</a>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true">
+    <label for="menu-toggle" class="menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+    <nav class="menu-overlay">
+      <label for="menu-toggle" class="menu-close" aria-label="Close menu">&times;</label>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/llms/">LLMs</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/now/">Now</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main>
+<article class="llms-node">
+  <header class="llms-node-header">
+    <nav class="llms-breadcrumb">
+      <a href="/llms/">LLMs</a>
+      
+        
+        
+          <span class="sep">/</span>
+          <a href="http://localhost:1313/llms/3e-final-vector-to-token/">3e</a>
+        
+      
+      <span class="sep">/</span>
+      <span class="current">4b</span>
+    </nav>
+
+    <div class="llms-title-row">
+      <h1><span class="node-id-header">4b</span> How does the model know when to stop?</h1>
+      <span class="llms-status-badge llms-status-unreviewed">unreviewed</span>
+    </div>
+  </header>
+
+  <div class="llms-content post-content">
+    <div class="mermaid">graph LR
+    A["Layers ×80"] --> B["Predict next<br/>token"]:::hl --> C{"Is it<br/>EOS?"}:::hl
+    C -->|"no"| D["Append token,<br/>continue decode"] --> A
+    C -->|"yes"| E["Stop generating"]:::hl
+    classDef hl fill:#2d6a4f,stroke:#1b4332,color:#d8f3dc
+    classDef default fill:#1a1a2e,stroke:#16213e,color:#e0e0e0</div>
+<p>The model doesn&rsquo;t &ldquo;decide&rdquo; it has fully answered your question. It has no concept of completeness, correctness, or satisfaction. It stops because it predicts a special token.</p>
+<p><strong>The EOS token.</strong> Every model&rsquo;s vocabulary includes one or more special tokens that signal &ldquo;end of sequence&rdquo; — commonly called <code>&lt;EOS&gt;</code>, <code>&lt;|endoftext|&gt;</code>, <code>&lt;/s&gt;</code>, or similar. These tokens are in the vocabulary alongside &ldquo;the&rdquo;, &ldquo;cat&rdquo;, and every other token. When the model&rsquo;s final hidden state gets dot-producted against the vocabulary (see <a href="/llms/3e-final-vector-to-token/">3e</a>), the EOS token competes with every other token for the highest probability. When EOS wins — when the model predicts that the most likely next token is &ldquo;stop&rdquo; — generation ends.</p>
+<p><strong>How did it learn when to stop?</strong> The same way it learned everything else: training data. The training corpus is segmented into sequences, each ending with an EOS token. The model learned, through trillions of gradient updates, that certain patterns precede EOS — a complete thought, a finished answer, the end of a paragraph, a natural stopping point. During fine-tuning and RLHF, the model further learned that in a conversation context, EOS should come after a complete, helpful response — not mid-sentence and not after excessive rambling.</p>
+<p><strong>What it looks like mechanically:</strong> at every decode step, the softmax over the vocabulary produces a probability for EOS alongside every other token. Early in a response, EOS probability is near zero — the model is mid-thought. As the response progresses and the model approaches a natural endpoint, EOS probability climbs. Eventually it becomes the highest-probability token, gets selected, and generation stops.</p>
+<p><strong>Other stopping conditions</strong> exist outside the model:</p>
+<ul>
+<li><strong>Max token limit</strong>: the serving system can impose a hard cap. Even if the model hasn&rsquo;t predicted EOS, generation stops at the limit. The model didn&rsquo;t &ldquo;decide&rdquo; to stop — it was cut off.</li>
+<li><strong>Stop sequences</strong>: the API can specify text patterns (like <code>&quot;\n\nHuman:&quot;</code>) that trigger an immediate stop when generated. Again, external — the model doesn&rsquo;t know about these.</li>
+<li><strong>Context window exhaustion</strong>: if the generated tokens plus the input fill the model&rsquo;s maximum context length, generation must stop because there&rsquo;s no room for another token.</li>
+</ul>
+<p><strong>The model has no self-awareness about stopping.</strong> It doesn&rsquo;t think &ldquo;I&rsquo;ve fully answered this question.&rdquo; It doesn&rsquo;t evaluate its own response for completeness. It simply predicts the next token, and sometimes that next token is EOS. The <em>appearance</em> of knowing when to stop comes entirely from the statistical patterns in the training data — the model learned what complete responses look like by seeing millions of them.</p>
+<p><strong>Performance profile:</strong> Predicting the EOS token is mechanically identical to predicting any other token — same forward pass through all 80 layers, same vocabulary dot product, same cost. There is no special &ldquo;checking&rdquo; computation. The only performance relevance is that models which tend to be verbose (low EOS probability until very long responses) cost more per request purely because they generate more tokens before stopping.</p>
+
+  </div>
+
+  <nav class="llms-tree-nav">
+    
+      
+      
+      <div class="llms-nav-parent">
+        <span class="nav-label">Up:</span>
+        <a href="http://localhost:1313/llms/3e-final-vector-to-token/">3e &mdash; From final vector to predicted token</a>
+      </div>
+      
+    
+
+    
+
+    <div class="llms-nav-map">
+      <a href="/llms/">&larr; Back to the map</a>
+    </div>
+  </nav>
+</article>
+</main><footer class="site-footer">
+  <p>&copy; 2026 Wes Kennedy. All rights reserved.</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2d6a4f',
+      primaryTextColor: '#d8f3dc',
+      primaryBorderColor: '#1b4332',
+      lineColor: '#7c3aed',
+      secondaryColor: '#e76f51',
+      tertiaryColor: '#1a1a2e',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: '14px'
+    }
+  });
+</script>
+
+</body>
+</html>

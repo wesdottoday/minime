@@ -3,6 +3,8 @@ title: "LLMs: All the Rabbit Holes"
 description: "What actually happens when you send a message to an LLM — from tokens to attention to output, one rabbit hole at a time."
 layout: "llms-home"
 mermaid: true
+series_weight: 1
+series_card_description: "What actually happens when you send a message to an LLM — from tokens to attention to output, one rabbit hole at a time."
 ---
 
 ```mermaid

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What happens when you send a message to an LLM &ndash; Wes Kennedy</title>
+<meta name="description" content="Systems archaeologist by instinct, technical marketer by trade.">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/llms.css">
+
+</head>
+<body><header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="site-title">Wes Kennedy</a>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true">
+    <label for="menu-toggle" class="menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+    <nav class="menu-overlay">
+      <label for="menu-toggle" class="menu-close" aria-label="Close menu">&times;</label>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/llms/">LLMs</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/now/">Now</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main>
+<article class="llms-node">
+  <header class="llms-node-header">
+    <nav class="llms-breadcrumb">
+      <a href="/llms/">LLMs</a>
+      
+      <span class="sep">/</span>
+      <span class="current">0</span>
+    </nav>
+
+    <div class="llms-title-row">
+      <h1><span class="node-id-header">0</span> What happens when you send a message to an LLM</h1>
+      <span class="llms-status-badge llms-status-reviewed">reviewed</span>
+    </div>
+  </header>
+
+  <div class="llms-content post-content">
+    <div class="mermaid">graph LR
+    A[Input Text]:::hl --> B[Tokenizer]:::hl --> C[Token IDs]:::hl --> D[Embedding]:::hl --> E["Layers ×80"]:::hl --> F[Predict]:::hl --> G[Output Token]:::hl
+    G -.->|decode loop| E
+    classDef hl fill:#2d6a4f,stroke:#1b4332,color:#d8f3dc
+    classDef default fill:#1a1a2e,stroke:#16213e,color:#e0e0e0</div>
+<p>When you send a message to an LLM like ChatGPT or Claude, here&rsquo;s what happens at a high level:</p>
+<ol>
+<li>Your message, along with any previous messages in the conversation (the &ldquo;context&rdquo;), gets converted from human-readable text into numbers — specifically, a sequence of numerical vectors. This step is called <em>tokenization</em> and <em>embedding</em>.</li>
+<li>Those numbers flow through the model — a stack of mathematical layers that transform them, over and over, each layer refining the model&rsquo;s internal representation of what you said and what should come next.</li>
+<li>The final layer outputs a probability distribution: a ranked list of every possible next word (technically &ldquo;token&rdquo;) the model could produce, with a score for how likely each one is.</li>
+<li>A token is selected from that distribution, appended to the sequence, and the whole process repeats — the model now takes everything so far (your messages + its own partial response) and predicts the next token again. This loop continues until the model produces a stop signal.</li>
+</ol>
+<p>That&rsquo;s it. Every response you&rsquo;ve ever gotten from an LLM was generated one token at a time, left to right, by a system that only knows how to do one thing: predict what comes next.</p>
+
+  </div>
+
+  <nav class="llms-tree-nav">
+    
+
+    
+    <div class="llms-nav-children">
+      <span class="nav-label">Go deeper:</span>
+      <ul>
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/1a-vectors/">1a &mdash; What are vectors?</a></li>
+          
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/1b-tokens/">1b &mdash; What is a token?</a></li>
+          
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/1c-embeddings/">1c &mdash; What are embeddings and how are they created?</a></li>
+          
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/1d-prefill-decode/">1d &mdash; Prefill vs decode</a></li>
+          
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/1e-thinking/">1e &mdash; How does &#34;thinking&#34; work?</a></li>
+          
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/1f-tool-calls/">1f &mdash; How do tool calls work?</a></li>
+          
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/1g-memory/">1g &mdash; How does memory work?</a></li>
+          
+        
+      </ul>
+    </div>
+    
+
+    <div class="llms-nav-map">
+      <a href="/llms/">&larr; Back to the map</a>
+    </div>
+  </nav>
+</article>
+</main><footer class="site-footer">
+  <p>&copy; 2026 Wes Kennedy. All rights reserved.</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2d6a4f',
+      primaryTextColor: '#d8f3dc',
+      primaryBorderColor: '#1b4332',
+      lineColor: '#7c3aed',
+      secondaryColor: '#e76f51',
+      tertiaryColor: '#1a1a2e',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: '14px'
+    }
+  });
+</script>
+
+</body>
+</html>

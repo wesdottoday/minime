@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How tokenization actually works &ndash; Wes Kennedy</title>
+<meta name="description" content="Systems archaeologist by instinct, technical marketer by trade.">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/llms.css">
+
+</head>
+<body><header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="site-title">Wes Kennedy</a>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true">
+    <label for="menu-toggle" class="menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+    <nav class="menu-overlay">
+      <label for="menu-toggle" class="menu-close" aria-label="Close menu">&times;</label>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/llms/">LLMs</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/now/">Now</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main>
+<article class="llms-node">
+  <header class="llms-node-header">
+    <nav class="llms-breadcrumb">
+      <a href="/llms/">LLMs</a>
+      
+        
+        
+          <span class="sep">/</span>
+          <a href="http://localhost:1313/llms/1b-tokens/">1b</a>
+        
+      
+      <span class="sep">/</span>
+      <span class="current">2a</span>
+    </nav>
+
+    <div class="llms-title-row">
+      <h1><span class="node-id-header">2a</span> How tokenization actually works</h1>
+      <span class="llms-status-badge llms-status-reviewed">reviewed</span>
+    </div>
+  </header>
+
+  <div class="llms-content post-content">
+    <div class="mermaid">graph LR
+    A[Input Text]:::hl --> B[Normalize]:::hl --> C[BPE Split]:::hl --> D[Token IDs]:::hl --> E[Embedding] --> F[Attention] --> G[FFN] --> H["→ ×80"] --> I[Vocab Proj] --> J[Output]
+    classDef hl fill:#2d6a4f,stroke:#1b4332,color:#d8f3dc
+    classDef default fill:#1a1a2e,stroke:#16213e,color:#e0e0e0</div>
+<p>Let&rsquo;s walk through what happens when you type &ldquo;I love unbelievable tacos&rdquo; and hit send.</p>
+<p><strong>Step 1: The raw text gets normalized.</strong> Minor cleanup — things like standardizing unicode characters, handling whitespace. Nothing dramatic, just making sure the text is in a consistent format before splitting.</p>
+<p><strong>Step 2: The text gets split into tokens using the vocabulary.</strong> The tokenizer has a fixed vocabulary — let&rsquo;s say 50,000 entries — that was built once before training and never changes. It scans your text and greedily matches the longest sequences it can find in its vocabulary:</p>
+<ul>
+<li><code>&quot;I&quot;</code> → in the vocabulary as-is → token ID 40</li>
+<li><code>&quot; love&quot;</code> → in the vocabulary (note: the space is part of the token) → token ID 3021</li>
+<li><code>&quot; un&quot;</code> → in the vocabulary → token ID 5765</li>
+<li><code>&quot;believ&quot;</code> → in the vocabulary → token ID 18510</li>
+<li><code>&quot;able&quot;</code> → in the vocabulary → token ID 540</li>
+<li><code>&quot; tacos&quot;</code> → in the vocabulary → token ID 83412</li>
+</ul>
+<p>So the model receives: <code>[40, 3021, 5765, 18510, 540, 83412]</code></p>
+<p><strong>How was that vocabulary built in the first place?</strong> This is where Byte Pair Encoding (BPE) comes in. Before training the LLM, you take a massive text corpus and run BPE on it:</p>
+<ol>
+<li>Start with individual characters as your initial vocabulary: <code>a, b, c, ... z, A, B, ... 0, 1, ... !, ?, ...</code></li>
+<li>Scan the entire corpus and count every pair of adjacent tokens</li>
+<li>Find the most frequent pair — say <code>t</code> + <code>h</code> appears 9 million times</li>
+<li>Merge that pair into a new token <code>th</code> and add it to the vocabulary</li>
+<li>Rescan and repeat</li>
+</ol>
+<p>You keep merging until you hit your target vocabulary size (e.g., 50,000 tokens). The result is a vocabulary where common words are single tokens, common subwords are tokens, and rare things get assembled from smaller pieces. The merge order is saved as the tokenizer&rsquo;s rules — that&rsquo;s what gets shipped with the model.</p>
+<p><strong>Why not just split on words?</strong> Three reasons:</p>
+<ul>
+<li><strong>Unknown words would break the model.</strong> A word-level tokenizer can&rsquo;t handle typos, new slang, code, or any word not in its vocabulary. Subword tokenization can always fall back to characters — nothing is truly &ldquo;unknown.&rdquo;</li>
+<li><strong>The vocabulary would be enormous.</strong> English alone has hundreds of thousands of words. Add code, other languages, technical terms — you&rsquo;d need millions of entries, each requiring its own embedding vector, which means millions more parameters to store and train.</li>
+<li><strong>Morphology gets captured for free.</strong> Because &ldquo;un&rdquo;, &ldquo;believ&rdquo;, and &ldquo;able&rdquo; are separate tokens, the model can learn that &ldquo;un-&rdquo; often negates things and &ldquo;-able&rdquo; often means &ldquo;capable of&rdquo; — patterns that transfer to words it&rsquo;s never seen whole.</li>
+</ul>
+<p><strong>One last detail:</strong> the tokenizer is completely separate from the model. It runs before the model sees anything, and it runs after (to convert token IDs back into text for the response). It has no neural network, no intelligence — it&rsquo;s a deterministic lookup. The same input always produces the same tokens.</p>
+
+  </div>
+
+  <nav class="llms-tree-nav">
+    
+      
+      
+      <div class="llms-nav-parent">
+        <span class="nav-label">Up:</span>
+        <a href="http://localhost:1313/llms/1b-tokens/">1b &mdash; What is a token?</a>
+      </div>
+      
+    
+
+    
+    <div class="llms-nav-children">
+      <span class="nav-label">Go deeper:</span>
+      <ul>
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/3a-tokenization-perf/">3a &mdash; Tokenization performance: where does it run and what&#39;s the bottleneck?</a></li>
+          
+        
+      </ul>
+    </div>
+    
+
+    <div class="llms-nav-map">
+      <a href="/llms/">&larr; Back to the map</a>
+    </div>
+  </nav>
+</article>
+</main><footer class="site-footer">
+  <p>&copy; 2026 Wes Kennedy. All rights reserved.</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2d6a4f',
+      primaryTextColor: '#d8f3dc',
+      primaryBorderColor: '#1b4332',
+      lineColor: '#7c3aed',
+      secondaryColor: '#e76f51',
+      tertiaryColor: '#1a1a2e',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: '14px'
+    }
+  });
+</script>
+
+</body>
+</html>

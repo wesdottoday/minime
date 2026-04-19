@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLMs: All the Rabbit Holes &ndash; Wes Kennedy</title>
+<meta name="description" content="What actually happens when you send a message to an LLM — from tokens to attention to output, one rabbit hole at a time.">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/llms.css">
+<link rel="alternate" type="application/rss+xml" title="Wes Kennedy" href="http://localhost:1313/llms/index.xml">
+</head>
+<body><header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="site-title">Wes Kennedy</a>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true">
+    <label for="menu-toggle" class="menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+    <nav class="menu-overlay">
+      <label for="menu-toggle" class="menu-close" aria-label="Close menu">&times;</label>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/series/">Series</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/now/">Now</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main>
+<section class="llms-landing">
+  <header class="llms-landing-header">
+    <h1>LLMs: All the Rabbit Holes</h1>
+    <p class="llms-intro">What actually happens when you send a message to an LLM — from tokens to attention to output, one rabbit hole at a time.</p>
+    <button id="clear-progress" class="clear-progress-btn">Clear progress</button>
+  </header>
+
+  <div class="llms-map">
+    <div class="mermaid">graph TD
+    R0["What happens when you<br/>send a message"]:::node
+    R0 --> 1a["Vectors"]:::node
+    R0 --> 1b["Tokens"]:::node
+    R0 --> 1c["Embeddings"]:::node
+    R0 --> 1d["Prefill vs Decode"]:::node
+    R0 --> 1e["Thinking"]:::node
+    R0 --> 1f["Tool Calls"]:::node
+    R0 --> 1g["Memory"]:::node
+
+    1a --> 1a_more["1 deeper topic"]:::count
+    1b --> 1b_more["1 deeper topic"]:::count
+    1c --> 1c_more["6 deeper topics"]:::count
+    1d --> 1d_more["1 deeper topic"]:::count
+    1e --> 1e_more["1 deeper topic"]:::count
+    1f --> 1f_more["1 deeper topic"]:::count
+
+    classDef node fill:#2d6a4f,stroke:#1b4332,color:#d8f3dc
+    classDef count fill:#1a1a2e,stroke:#16213e,color:#888,font-size:12px
+
+    click R0 "/llms/what-happens/"
+    click 1a "/llms/what-happens/vectors/"
+    click 1b "/llms/what-happens/tokens/"
+    click 1c "/llms/what-happens/embeddings/"
+    click 1d "/llms/what-happens/prefill-decode/"
+    click 1e "/llms/what-happens/thinking/"
+    click 1f "/llms/what-happens/tool-calls/"
+    click 1g "/llms/what-happens/memory/"</div>
+
+  </div>
+
+  
+    
+    
+    
+    <div class="llms-tier">
+      <h2>Root</h2>
+      <ul class="llms-node-list">
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/">
+          <a href="/llms/what-happens/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">What happens when you send a message to an LLM</span>
+            <p class="node-summary">When you send a message to an LLM like ChatGPT or Claude, here&#39;s what happens at a high level:</p>
+          </a>
+        </li>
+        
+      </ul>
+    </div>
+    
+  
+    
+    
+    
+    <div class="llms-tier">
+      <h2>Tier 1</h2>
+      <ul class="llms-node-list">
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/vectors/">
+          <a href="/llms/what-happens/vectors/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">What are vectors?</span>
+            <p class="node-summary">A vector is just a list of numbers. That&#39;s it. The list `[0.2, -1.5, 0.8]` is a three-dimensional vector. The word &#34;dimensional&#34; sounds intimidating, but all it means is how many numbers are in the...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/tokens/">
+          <a href="/llms/what-happens/tokens/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">What is a token?</span>
+            <p class="node-summary">A token is the unit of text that an LLM actually works with. It&#39;s not a word, not a character — it&#39;s somewhere in between. The model has a fixed vocabulary of tokens (typically 30,000–100,000 of...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/embeddings/">
+          <a href="/llms/what-happens/embeddings/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">What are embeddings and how are they created?</span>
+            <p class="node-summary">After tokenization gives you a sequence of token IDs like `[40, 3021, 5765, 18510, 540]`, the model needs to convert each ID into a vector the neural network can work with. This is the embedding...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/prefill-decode/">
+          <a href="/llms/what-happens/prefill-decode/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">Prefill vs decode</span>
+            <p class="node-summary">When you send a message to an LLM, inference happens in two distinct phases. Understanding these two phases is key to understanding why LLMs perform the way they do.</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/thinking/">
+          <a href="/llms/what-happens/thinking/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">How does &#34;thinking&#34; work?</span>
+            <p class="node-summary">There is no separate &#34;thinking&#34; module. The model doesn&#39;t have an internal scratchpad or a different mode of processing. Thinking is just **more token generation** — the model produces tokens that...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/tool-calls/">
+          <a href="/llms/what-happens/tool-calls/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">How do tool calls work?</span>
+            <p class="node-summary">Tool calling is not a special capability baked into the model architecture. The model doesn&#39;t &#34;run code&#34; or &#34;access the internet.&#34; It generates text that happens to follow a specific structured...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/memory/">
+          <a href="/llms/what-happens/memory/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">How does memory work?</span>
+            <p class="node-summary">LLMs have no persistent memory. Every conversation starts from zero — the model has its weights (fixed, trained knowledge) and whatever tokens are in the current context window. When the context is...</p>
+          </a>
+        </li>
+        
+      </ul>
+    </div>
+    
+  
+    
+    
+    
+    <div class="llms-tier">
+      <h2>Tier 2</h2>
+      <ul class="llms-node-list">
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/tokens/tokenization/">
+          <a href="/llms/what-happens/tokens/tokenization/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">How tokenization actually works</span>
+            <p class="node-summary">Let&#39;s walk through what happens when you type &#34;I love unbelievable tacos&#34; and hit send.</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/embeddings/weights/">
+          <a href="/llms/what-happens/embeddings/weights/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">What are weights?</span>
+            <p class="node-summary">A weight is a single number that the model can adjust to change its behavior. That&#39;s it. When people say a model has &#34;405 billion parameters,&#34; they mean it has 405 billion individual numbers —...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/embeddings/gradients/">
+          <a href="/llms/what-happens/embeddings/gradients/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">Gradients and gradient updates (how weights get their values)</span>
+            <p class="node-summary">Training works by repeated trial and error, automated at massive scale. Here&#39;s the loop:</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/embeddings/directions/">
+          <a href="/llms/what-happens/embeddings/directions/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">&#34;Directions in the space encode relationships&#34;</span>
+            <p class="node-summary">This is one of the most surprising things about embeddings. Take the classic example: king - man &#43; woman ≈ queen. What&#39;s actually happening in the vector math?</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/embeddings/model-layers/">
+          <a href="/llms/what-happens/embeddings/model-layers/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">What are model layers?</span>
+            <p class="node-summary">A layer is one complete round of transformation that every token vector passes through. If the model has 80 layers (typical for a large LLM), then each token vector gets transformed 80 times in...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/embeddings/layer-transforms/">
+          <a href="/llms/what-happens/embeddings/layer-transforms/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">How do layers transform vectors?</span>
+            <p class="node-summary">The actual operations are matrix multiplications. Every transformation in a layer — attention, feed-forward — boils down to multiplying a vector by a weight matrix to produce a new vector.</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/embeddings/hidden-states/">
+          <a href="/llms/what-happens/embeddings/hidden-states/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">What are hidden states?</span>
+            <p class="node-summary">Hidden states are simply what the token vectors are called once they&#39;re inside the model. Before layer 1, they&#39;re called embeddings. After passing through one or more layers, they&#39;re called hidden...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/vectors/dot-product/">
+          <a href="/llms/what-happens/vectors/dot-product/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">What is a dot product?</span>
+            <p class="node-summary">Take two vectors of the same length. Multiply their elements in pairs, then add up the results. That&#39;s the entire operation:</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/prefill-decode/kv-cache/">
+          <a href="/llms/what-happens/prefill-decode/kv-cache/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">KV cache and context memory costs</span>
+            <p class="node-summary">During prefill, every token at every layer produces three vectors: a **query** (Q), a **key** (K), and a **value** (V). The query is ephemeral — it&#39;s used once to compute attention scores against all...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/tool-calls/skills/">
+          <a href="/llms/what-happens/tool-calls/skills/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">Skills: abstraction over tool calls</span>
+            <p class="node-summary">A skill is not something the model does — it&#39;s something the **harness** (the software wrapping the model) does before and after the model runs.</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/thinking/planning/">
+          <a href="/llms/what-happens/thinking/planning/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">Planning and multi-step execution</span>
+            <p class="node-summary">Planning is an extension of thinking combined with tool use. The model doesn&#39;t have a planner module — it generates a plan as text, then executes it step by step through the normal token generation loop.</p>
+          </a>
+        </li>
+        
+      </ul>
+    </div>
+    
+  
+    
+    
+    
+    <div class="llms-tier">
+      <h2>Tier 3</h2>
+      <ul class="llms-node-list">
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/tokens/tokenization/tokenization-perf/">
+          <a href="/llms/what-happens/tokens/tokenization/tokenization-perf/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">Tokenization performance: where does it run and what&#39;s the bottleneck?</span>
+            <p class="node-summary">Tokenization runs on the **CPU**. Not the GPU. This surprises people because everything else in the LLM pipeline is GPU-bound, but tokenization is the wrong shape for GPU execution.</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/embeddings/layer-transforms/dimension-tradeoffs/">
+          <a href="/llms/what-happens/embeddings/layer-transforms/dimension-tradeoffs/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">Dimension trade-offs: expressiveness vs. cost</span>
+            <p class="node-summary">The embedding dimension (`d_model`) is a design choice made before training. Common values:</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/embeddings/model-layers/attention-deep-dive/">
+          <a href="/llms/what-happens/embeddings/model-layers/attention-deep-dive/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">Attention deep dive: what does it mean for a token to &#34;pay attention&#34;?</span>
+            <p class="node-summary">In practice, the model doesn&#39;t run attention once per layer — it runs it **multiple times in parallel** (typically 32-128 times), each with its own independent set of W_Q, W_K, W_V weight matrices....</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/embeddings/model-layers/ffn-deep-dive/">
+          <a href="/llms/what-happens/embeddings/model-layers/ffn-deep-dive/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">FFN deep dive: the per-token thinking step</span>
+            <p class="node-summary">After attention has mixed information between tokens, each token&#39;s vector passes through the **feed-forward network (FFN)** — and this is the solo step. No cross-token interaction whatsoever. Every...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/embeddings/model-layers/final-vector-to-token/">
+          <a href="/llms/what-happens/embeddings/model-layers/final-vector-to-token/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">From final vector to predicted token</span>
+            <p class="node-summary">After 80 layers of attention and FFN, each token&#39;s vector has been transformed into a rich contextual representation. But the model needs to produce an actual token — a word (or subword) from its...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/prefill-decode/kv-cache/sparse-attention/">
+          <a href="/llms/what-happens/prefill-decode/kv-cache/sparse-attention/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">Sparse attention: skipping tokens you don&#39;t need</span>
+            <p class="node-summary">Full attention means every token attends to every other token — T² comparisons. Sparse attention says: most of those comparisons are wasted. Token 4,000 probably doesn&#39;t need to attend to token 12....</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/prefill-decode/kv-cache/attention-approximations/">
+          <a href="/llms/what-happens/prefill-decode/kv-cache/attention-approximations/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">Attention approximations: breaking the T² barrier differently</span>
+            <p class="node-summary">Where sparse attention *skips* certain token pairs, approximation methods try to compute *something like* full attention but with less math. The goal is the same — avoid the T² bottleneck — but the...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/prefill-decode/kv-cache/quantization/">
+          <a href="/llms/what-happens/prefill-decode/kv-cache/quantization/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">What is quantization?</span>
+            <p class="node-summary">Quantization means storing numbers with fewer bits. Every weight, every cached K/V vector, every activation is a number that takes up space in memory. The question is: how precisely do you need to...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/prefill-decode/kv-cache/paged-attention/">
+          <a href="/llms/what-happens/prefill-decode/kv-cache/paged-attention/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">Paged attention: virtual memory for KV cache</span>
+            <p class="node-summary">The problem paged attention solves isn&#39;t the size of the KV cache per se — it&#39;s **fragmentation** and **waste** when serving many concurrent requests.</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/prefill-decode/kv-cache/kv-cache-offloading/">
+          <a href="/llms/what-happens/prefill-decode/kv-cache/kv-cache-offloading/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">KV cache offloading: trading latency for capacity</span>
+            <p class="node-summary">When the KV cache exceeds GPU HBM capacity, you have two choices: refuse the request, or move some of the cache to slower memory. Offloading chooses the second option — it creates a **memory...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/prefill-decode/kv-cache/mqa-gqa/">
+          <a href="/llms/what-happens/prefill-decode/kv-cache/mqa-gqa/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">MQA and GQA: reducing cache size at the architecture level</span>
+            <p class="node-summary">The problem: in standard Multi-Head Attention (MHA), each of the 64 heads has its own K and V projections, so the KV cache stores 64 sets of K and V per layer. Most of the KV cache cost comes from...</p>
+          </a>
+        </li>
+        
+      </ul>
+    </div>
+    
+  
+    
+    
+    
+    <div class="llms-tier">
+      <h2>Tier 4</h2>
+      <ul class="llms-node-list">
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/embeddings/model-layers/attention-deep-dive/multi-head-attention/">
+          <a href="/llms/what-happens/embeddings/model-layers/attention-deep-dive/multi-head-attention/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">Multi-head attention: how it works and what it costs</span>
+            <p class="node-summary">**How multi-head splits the work.** Say `d_model` = 8,192 and you have 64 attention heads. Instead of running one attention operation across all 8,192 dimensions, you split the vector into 64 chunks...</p>
+          </a>
+        </li>
+        
+        <li class="llms-node-card" data-href="/llms/what-happens/embeddings/model-layers/final-vector-to-token/stopping/">
+          <a href="/llms/what-happens/embeddings/model-layers/final-vector-to-token/stopping/" class="node-card-link">
+            <span class="node-read-badge">Read</span>
+            <span class="node-title">How does the model know when to stop?</span>
+            <p class="node-summary">The model doesn&#39;t &#34;decide&#34; it has fully answered your question. It has no concept of completeness, correctness, or satisfaction. It stops because it predicts a special token.</p>
+          </a>
+        </li>
+        
+      </ul>
+    </div>
+    
+  
+</section>
+
+<script>
+(function() {
+  var key = 'llms-visited';
+  var visited = JSON.parse(localStorage.getItem(key) || '[]');
+
+  
+  document.querySelectorAll('.llms-node-card').forEach(function(card) {
+    var href = card.getAttribute('data-href');
+    if (visited.indexOf(href) !== -1) {
+      card.classList.add('is-read');
+    }
+  });
+
+  
+  document.querySelectorAll('.node-card-link').forEach(function(link) {
+    link.addEventListener('click', function() {
+      var href = link.getAttribute('href');
+      if (visited.indexOf(href) === -1) {
+        visited.push(href);
+        localStorage.setItem(key, JSON.stringify(visited));
+      }
+    });
+  });
+
+  
+  var btn = document.getElementById('clear-progress');
+  if (btn) {
+    if (visited.length === 0) btn.style.display = 'none';
+    btn.addEventListener('click', function() {
+      localStorage.removeItem(key);
+      document.querySelectorAll('.llms-node-card.is-read').forEach(function(card) {
+        card.classList.remove('is-read');
+      });
+      btn.style.display = 'none';
+    });
+  }
+})();
+</script>
+</main><footer class="site-footer">
+  <p>&copy; 2026 Wes Kennedy. All rights reserved.</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2d6a4f',
+      primaryTextColor: '#d8f3dc',
+      primaryBorderColor: '#1b4332',
+      lineColor: '#7c3aed',
+      secondaryColor: '#e76f51',
+      tertiaryColor: '#1a1a2e',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: '14px'
+    }
+  });
+</script>
+
+</body>
+</html>

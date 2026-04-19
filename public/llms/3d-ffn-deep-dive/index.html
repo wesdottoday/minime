@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FFN deep dive: the per-token thinking step &ndash; Wes Kennedy</title>
+<meta name="description" content="Systems archaeologist by instinct, technical marketer by trade.">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/llms.css">
+
+</head>
+<body><header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="site-title">Wes Kennedy</a>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true">
+    <label for="menu-toggle" class="menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+    <nav class="menu-overlay">
+      <label for="menu-toggle" class="menu-close" aria-label="Close menu">&times;</label>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/llms/">LLMs</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/now/">Now</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main>
+<article class="llms-node">
+  <header class="llms-node-header">
+    <nav class="llms-breadcrumb">
+      <a href="/llms/">LLMs</a>
+      
+        
+        
+          <span class="sep">/</span>
+          <a href="http://localhost:1313/llms/2e-model-layers/">2e</a>
+        
+      
+      <span class="sep">/</span>
+      <span class="current">3d</span>
+    </nav>
+
+    <div class="llms-title-row">
+      <h1><span class="node-id-header">3d</span> FFN deep dive: the per-token thinking step</h1>
+      <span class="llms-status-badge llms-status-reviewed">reviewed</span>
+    </div>
+  </header>
+
+  <div class="llms-content post-content">
+    <div class="mermaid">graph LR
+    A["Post-attention<br/>vector (8,192-d)"] --> B["× W_up<br/>(8,192 → 32,768)"]:::hl --> C["SiLU activation<br/>(element-wise)"]:::hl --> D["× W_down<br/>(32,768 → 8,192)"]:::hl --> E["+ input<br/>(residual)"]:::hl --> F["Output vector<br/>(8,192-d)"]
+    classDef hl fill:#2d6a4f,stroke:#1b4332,color:#d8f3dc
+    classDef default fill:#1a1a2e,stroke:#16213e,color:#e0e0e0</div>
+<p>After attention has mixed information between tokens, each token&rsquo;s vector passes through the <strong>feed-forward network (FFN)</strong> — and this is the solo step. No cross-token interaction whatsoever. Every token passes independently through the exact same weights. If you have 500 tokens, the FFN runs 500 times in parallel, each one completely unaware of the others.</p>
+<p>The FFN is two matrix multiplications with a nonlinear activation sandwiched between them:</p>
+<p><strong>Step 1: Expand.</strong> Multiply the token&rsquo;s vector by a weight matrix <code>W_up</code> that projects it from <code>d_model</code> (8,192) into a much larger intermediate space — typically 4× larger, so 32,768 dimensions. This is called the <strong>hidden dimension</strong> or <code>d_ff</code>.</p>
+<p><code>[8,192-d vector] × [8,192 × 32,768 matrix] → [32,768-d vector]</code></p>
+<p><strong>Step 2: Nonlinear activation.</strong> Apply an activation function element-wise — each of the 32,768 numbers gets transformed independently. Modern LLMs typically use <strong>SiLU</strong> (also called Swish):</p>
+<p><code>SiLU(x) = x × sigmoid(x) = x × (1 / (1 + e^(-x)))</code></p>
+<p>This leaves large positive values mostly untouched, pushes values near zero toward zero, and dampens negative values (but doesn&rsquo;t fully kill them like the older ReLU function).</p>
+<p><strong>Why is this step critical?</strong> Without the nonlinearity, the two matrix multiplications collapse into one — <code>W_up</code> followed by <code>W_down</code> is mathematically equivalent to a single matrix <code>W_up × W_down</code>. Stacking layers would be pointless because the whole model would reduce to one linear transformation. The activation function breaks this equivalence. It means expand → activate → compress can represent things that no single matrix multiplication can. This is what gives depth its power — each layer adds genuinely new representational capacity because of the nonlinearity in between.</p>
+<p><strong>Step 3: Compress.</strong> Multiply the activated 32,768-d vector by a second weight matrix <code>W_down</code> that projects it back to <code>d_model</code> (8,192).</p>
+<p><code>[32,768-d vector] × [32,768 × 8,192 matrix] → [8,192-d vector]</code></p>
+<p><strong>Step 4: Residual add.</strong> Add this result back to the vector that entered the FFN (the post-attention vector). Same residual pattern as attention — the FFN computes a <em>modification</em>, not a replacement.</p>
+<p><strong>Full path:</strong> 8,192 → expand to 32,768 → SiLU activation → compress to 8,192 → add to input.</p>
+<p><strong>Why expand and then compress?</strong> The expansion into a higher-dimensional space gives the model more room to do the nonlinear transformation. Some patterns in the data are only separable in a higher-dimensional space. The expansion creates that space, the activation carves out nonlinear decision boundaries, and the compression maps the result back to the working dimension. The wider the intermediate space, the more capacity — but the more parameters and compute.</p>
+<p><strong>The weight cost is significant:</strong></p>
+<ul>
+<li><code>W_up</code>: 8,192 × 32,768 = 268 million weights per layer</li>
+<li><code>W_down</code>: 32,768 × 8,192 = 268 million weights per layer</li>
+<li>Total: ~537 million weights per layer, just for FFN</li>
+</ul>
+<p>Across 80 layers: <strong>~43 billion parameters in FFN weights alone.</strong> In most large models, the FFN accounts for roughly two-thirds of the total parameter count. Attention gets the headlines, but FFN is where the bulk of the model&rsquo;s weights live.</p>
+<p>(Note: modern architectures like Llama use a &ldquo;gated&rdquo; FFN variant called <strong>SwiGLU</strong>, which adds a third weight matrix — a &ldquo;gate&rdquo; projection that also expands to <code>d_ff</code>, gets multiplied element-wise with the activated <code>W_up</code> output before compression. This adds ~50% more FFN parameters but improves model quality. The conceptual flow is the same.)</p>
+<p><strong>Performance profile:</strong> The FFN is <strong>compute-bound</strong> during prefill and <strong>memory-bandwidth bound</strong> during decode — same pattern as attention, but for different reasons. During prefill, every token passes through the W_up and W_down matmuls in parallel — that&rsquo;s T tokens × two large matrix multiplications, lots of FLOPs, and the GPU stays busy. During decode, you&rsquo;re pushing one token through W_up (loading 537 MB from HBM) and W_down (loading another 537 MB), but doing minimal math — the arithmetic intensity drops dramatically. The activation function (SiLU) and residual add are bandwidth-bound but trivially cheap in either phase. Per layer, the FFN&rsquo;s compute cost roughly equals the attention projections&rsquo; cost (both are d_model² matmuls), but the FFN has no T² component — it scales linearly with sequence length. This makes the FFN relatively cheaper than attention at long context lengths but still dominant at short context lengths where projections outweigh the T² attention term.</p>
+
+  </div>
+
+  <nav class="llms-tree-nav">
+    
+      
+      
+      <div class="llms-nav-parent">
+        <span class="nav-label">Up:</span>
+        <a href="http://localhost:1313/llms/2e-model-layers/">2e &mdash; What are model layers?</a>
+      </div>
+      
+    
+
+    
+
+    <div class="llms-nav-map">
+      <a href="/llms/">&larr; Back to the map</a>
+    </div>
+  </nav>
+</article>
+</main><footer class="site-footer">
+  <p>&copy; 2026 Wes Kennedy. All rights reserved.</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2d6a4f',
+      primaryTextColor: '#d8f3dc',
+      primaryBorderColor: '#1b4332',
+      lineColor: '#7c3aed',
+      secondaryColor: '#e76f51',
+      tertiaryColor: '#1a1a2e',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: '14px'
+    }
+  });
+</script>
+
+</body>
+</html>

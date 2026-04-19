@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What are model layers? &ndash; Wes Kennedy</title>
+<meta name="description" content="Systems archaeologist by instinct, technical marketer by trade.">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/llms.css">
+
+</head>
+<body><header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="site-title">Wes Kennedy</a>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true">
+    <label for="menu-toggle" class="menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+    <nav class="menu-overlay">
+      <label for="menu-toggle" class="menu-close" aria-label="Close menu">&times;</label>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/series/">Series</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/now/">Now</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main>
+<article class="llms-node">
+  <header class="llms-node-header">
+    <nav class="llms-breadcrumb">
+      <a href="/llms/">LLMs</a>
+      
+      
+      
+      
+        
+          
+          
+            
+            
+            
+          
+        
+      
+        
+          
+          
+            
+            
+            
+          
+        
+      
+        
+      
+        
+      
+        
+      
+      
+      
+      
+        
+          
+          
+          <span class="sep">/</span>
+          <a href="http://localhost:1313/llms/what-happens/">What happens when you send a message to an LLM</a>
+        
+          
+          
+          <span class="sep">/</span>
+          <a href="http://localhost:1313/llms/what-happens/embeddings/">What are embeddings and how are they created?</a>
+        
+      
+      <span class="sep">/</span>
+      <span class="current">What are model layers?</span>
+    </nav>
+
+    <h1>What are model layers?</h1>
+  </header>
+
+  <div class="llms-content post-content">
+    <div class="mermaid">graph LR
+    A[Input Text] --> B[Tokenizer] --> C[Token IDs] --> D[Embedding] --> E[Q,K,V Proj]:::hl --> F[Attn Scores]:::hl --> G[Weighted Sum]:::hl --> H[Residual]:::hl --> I["FFN"]:::hl --> J[Residual]:::hl --> K["→ ×80"]:::hl --> L[Vocab Proj] --> M[Output]
+    classDef hl fill:#2d6a4f,stroke:#1b4332,color:#d8f3dc
+    classDef default fill:#1a1a2e,stroke:#16213e,color:#e0e0e0
+
+    click A "/llms/what-happens/"
+    click B "/llms/what-happens/tokens/"
+    click C "/llms/what-happens/tokens/"
+    click D "/llms/what-happens/embeddings/"
+    click E "/llms/what-happens/embeddings/model-layers/attention-deep-dive/"
+    click F "/llms/what-happens/embeddings/model-layers/attention-deep-dive/"
+    click G "/llms/what-happens/embeddings/model-layers/attention-deep-dive/"
+    click I "/llms/what-happens/embeddings/model-layers/ffn-deep-dive/"
+    click L "/llms/what-happens/embeddings/model-layers/final-vector-to-token/"
+    click M "/llms/what-happens/embeddings/model-layers/final-vector-to-token/"</div>
+<p>A layer is one complete round of transformation that every token vector passes through. If the model has 80 layers (typical for a large LLM), then each token vector gets transformed 80 times in sequence before the model produces its output. During <a href="/llms/what-happens/prefill-decode/">prefill</a> (see <a href="/llms/what-happens/prefill-decode/">prefill vs decode</a>), all tokens in the input — your message, prior conversation history, system prompt, everything — enter each layer simultaneously and are processed in parallel.</p>
+<p>Here&rsquo;s what happens inside a single layer, step by step. Let&rsquo;s say your input is 500 tokens — that&rsquo;s 500 vectors, each 8,192 dimensions, all entering the layer at the same time:</p>
+<ol>
+<li>
+<p><strong>Attention</strong> — this is the only place in a layer where tokens interact with each other. Each token&rsquo;s vector gets multiplied by three different <a href="/llms/what-happens/embeddings/weights/">weight matrices</a> to produce three new vectors: a <strong>query</strong> (Q), a <strong>key</strong> (K), and a <strong>value</strong> (V). Then every token&rsquo;s query is compared against every other token&rsquo;s key using a <a href="/llms/what-happens/vectors/dot-product/">dot product</a>, producing a relevance score — &ldquo;how much should token i pay attention to token j?&rdquo; Those scores get normalized into weights that determine how much of each token&rsquo;s value vector gets mixed into each other token&rsquo;s representation. The result: each of the 500 tokens now has a new vector that&rsquo;s a weighted blend of information from all the tokens it attended to. This is where &ldquo;the cat sat on the mat&rdquo; lets &ldquo;sat&rdquo; pull in information from &ldquo;cat&rdquo; and &ldquo;mat&rdquo; — because the <a href="/llms/what-happens/embeddings/model-layers/attention-deep-dive/">attention scores</a> between those tokens will be high.</p>
+</li>
+<li>
+<p><strong><a href="/llms/what-happens/embeddings/model-layers/ffn-deep-dive/">Feed-forward network</a> (FFN)</strong> — after attention has mixed information <em>between</em> tokens, each token&rsquo;s blended vector passes <em>independently</em> through a small neural network (two matrix multiplications with a nonlinear activation in between). Every token goes through the same feed-forward weights, but independently — no cross-token interaction here. This is per-token transformation, not mixing.</p>
+</li>
+<li>
+<p><strong>Residual connection</strong> — the output of each step gets <em>added back</em> to the input that entered the step, rather than replacing it. Information from before the layer survives through. This is why deep models don&rsquo;t lose early information — there&rsquo;s a direct path through all 80 layers via these residual additions.</p>
+</li>
+</ol>
+<p>The result: 500 vectors go in, 500 vectors come out, still 8,192 dimensions each, but now pointing in slightly different directions — enriched with contextual information from the other tokens. Here&rsquo;s what that progression actually looks like for a single token, say &ldquo;sat&rdquo; in the sentence &ldquo;The cat sat on the mat&rdquo;:</p>
+<ol>
+<li><strong>Raw <a href="/llms/what-happens/embeddings/">embedding</a></strong> (before any layers): &ldquo;I am the token &lsquo;sat&rsquo;&rdquo; — no context, just the static lookup</li>
+<li><strong>After layer 1</strong>: &ldquo;I am &lsquo;sat&rsquo; and my subject is probably nearby&rdquo;</li>
+<li><strong>After layer 20</strong>: &ldquo;I am &lsquo;sat&rsquo; with subject &lsquo;cat&rsquo; and location &lsquo;mat&rsquo;, past tense&rdquo;</li>
+<li><strong>After layer 80</strong>: &ldquo;I am &lsquo;sat&rsquo; in this specific sentence, and given everything I&rsquo;ve absorbed, the most likely continuation is ___&rdquo;</li>
+</ol>
+<p>Each layer&rsquo;s attention and FFN nudge the vector&rsquo;s direction in 8,192-dimensional space. By layer 80, the vector has been nudged so many times that it&rsquo;s pointing in a direction that <em>is</em> the prediction. The final <a href="/llms/what-happens/embeddings/hidden-states/">hidden state</a> then gets dot-producted against every token in the vocabulary (128,000 vectors) — whichever vocabulary token&rsquo;s vector has the highest dot product with the final hidden state is the predicted next token. The expensive part was getting the vector to the right place in space across 80 layers. The actual prediction is just 128,000 dot products.</p>
+<p>Each layer has its <em>own</em> set of weights — its own attention weight matrices (Q, K, V projections) and its own feed-forward weights. Layer 1&rsquo;s weights are completely independent from layer 40&rsquo;s weights. This is where the bulk of the model&rsquo;s parameters live: 80 layers × (attention weights + FFN weights) = hundreds of billions of parameters.</p>
+<p><strong>Why many layers instead of one big layer?</strong> Depth lets the model build increasingly abstract representations. Early layers tend to capture surface-level patterns (syntax, word associations). Middle layers capture more complex relationships (coreference, semantic roles). Late layers capture high-level reasoning and prediction-relevant features. This hierarchy wasn&rsquo;t designed — it emerged from training — but it&rsquo;s been consistently observed when researchers probe what each layer does.</p>
+<p><strong>Performance profile:</strong> Each layer runs on the <strong>GPU</strong> and layers execute <strong>sequentially</strong> — layer 2 can&rsquo;t start until layer 1 finishes, because it needs layer 1&rsquo;s output as input. (Within a layer, the token-level operations run in parallel across the GPU.) For Llama 3 70B, each layer&rsquo;s weights are roughly 70B / 80 layers ≈ <strong>875 million parameters</strong> ≈ <strong>1.75 GB</strong> at FP16. During <strong>prefill</strong>, each layer is <strong>compute-bound</strong> — large matrix multiplications across all input tokens in parallel. During <strong>decode</strong>, each layer is <strong>memory-bandwidth bound</strong> — you still load the full 1.75 GB of layer weights from HBM, but you&rsquo;re only processing one token, so the math is tiny relative to the data movement. This is the fundamental reason decode is slow: every single token generated requires reading <em>all</em> model weights (140 GB for Llama 3 70B) from memory, 80 layers × 1.75 GB, just to produce one token.</p>
+
+  </div>
+
+  <nav class="llms-tree-nav">
+    
+    
+      
+      
+      <div class="llms-nav-section llms-nav-item" data-href="/llms/what-happens/embeddings/">
+        <span class="nav-label">Up:</span>
+        <span class="nav-read-badge">Read</span> <a href="/llms/what-happens/embeddings/">What are embeddings and how are they created?</a>
+      </div>
+      
+    
+
+    
+    
+    <div class="llms-nav-section">
+      <span class="nav-label">Go deeper:</span>
+      <ul class="llms-nav-list">
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/embeddings/model-layers/attention-deep-dive/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/embeddings/model-layers/attention-deep-dive/">Attention deep dive: what does it mean for a token to &#34;pay attention&#34;?</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/embeddings/model-layers/ffn-deep-dive/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/embeddings/model-layers/ffn-deep-dive/">FFN deep dive: the per-token thinking step</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/embeddings/model-layers/final-vector-to-token/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/embeddings/model-layers/final-vector-to-token/">From final vector to predicted token</a></li>
+          
+        
+      </ul>
+    </div>
+    
+
+    
+    
+    <div class="llms-nav-section">
+      <span class="nav-label">Also at this level:</span>
+      <ul class="llms-nav-list">
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/embeddings/weights/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/embeddings/weights/">What are weights?</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/embeddings/gradients/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/embeddings/gradients/">Gradients and gradient updates (how weights get their values)</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/embeddings/directions/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/embeddings/directions/">&#34;Directions in the space encode relationships&#34;</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/embeddings/layer-transforms/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/embeddings/layer-transforms/">How do layers transform vectors?</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/embeddings/hidden-states/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/embeddings/hidden-states/">What are hidden states?</a></li>
+          
+        
+      </ul>
+    </div>
+    
+
+    <div class="llms-nav-map">
+      <a href="/llms/">&larr; Back to the map</a>
+    </div>
+  </nav>
+</article>
+
+<script>
+(function() {
+  var key = 'llms-visited';
+  var visited = JSON.parse(localStorage.getItem(key) || '[]');
+  var href = window.location.pathname;
+  if (visited.indexOf(href) === -1) {
+    visited.push(href);
+    localStorage.setItem(key, JSON.stringify(visited));
+  }
+  document.querySelectorAll('.llms-nav-item').forEach(function(item) {
+    if (visited.indexOf(item.getAttribute('data-href')) !== -1) {
+      item.classList.add('is-read');
+    }
+  });
+})();
+</script>
+</main><footer class="site-footer">
+  <p>&copy; 2026 Wes Kennedy. All rights reserved.</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2d6a4f',
+      primaryTextColor: '#d8f3dc',
+      primaryBorderColor: '#1b4332',
+      lineColor: '#7c3aed',
+      secondaryColor: '#e76f51',
+      tertiaryColor: '#1a1a2e',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: '14px'
+    }
+  });
+</script>
+
+</body>
+</html>

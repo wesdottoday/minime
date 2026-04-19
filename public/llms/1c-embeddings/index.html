@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What are embeddings and how are they created? &ndash; Wes Kennedy</title>
+<meta name="description" content="Systems archaeologist by instinct, technical marketer by trade.">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/llms.css">
+
+</head>
+<body><header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="site-title">Wes Kennedy</a>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true">
+    <label for="menu-toggle" class="menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+    <nav class="menu-overlay">
+      <label for="menu-toggle" class="menu-close" aria-label="Close menu">&times;</label>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/llms/">LLMs</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/now/">Now</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main>
+<article class="llms-node">
+  <header class="llms-node-header">
+    <nav class="llms-breadcrumb">
+      <a href="/llms/">LLMs</a>
+      
+        
+        
+          <span class="sep">/</span>
+          <a href="http://localhost:1313/llms/0-what-happens/">0</a>
+        
+      
+      <span class="sep">/</span>
+      <span class="current">1c</span>
+    </nav>
+
+    <div class="llms-title-row">
+      <h1><span class="node-id-header">1c</span> What are embeddings and how are they created?</h1>
+      <span class="llms-status-badge llms-status-reviewed">reviewed</span>
+    </div>
+  </header>
+
+  <div class="llms-content post-content">
+    <div class="mermaid">graph LR
+    A[Input Text] --> B[Tokenizer] --> C[Token IDs] --> D[Embedding]:::hl --> E["Layers ×80"] --> F[Predict] --> G[Output Token]
+    G -.->|decode loop| E
+    classDef hl fill:#2d6a4f,stroke:#1b4332,color:#d8f3dc
+    classDef default fill:#1a1a2e,stroke:#16213e,color:#e0e0e0</div>
+<p>After tokenization gives you a sequence of token IDs like <code>[40, 3021, 5765, 18510, 540]</code>, the model needs to convert each ID into a vector the neural network can work with. This is the embedding step, and it&rsquo;s shockingly simple.</p>
+<p><strong>The embedding table is just a giant lookup matrix.</strong> If your vocabulary has 128,000 tokens and your model uses 8,192-dimensional vectors (as in Llama 3 70B), the embedding table is a matrix with 128,000 rows and 8,192 columns. Each row is one token&rsquo;s vector. To embed token ID 3021, you literally go to row 3,021 and grab that row. No computation, no formula — it&rsquo;s an array index. The entire &ldquo;conversion from token to vector&rdquo; is a table lookup.</p>
+<p><strong>So where do the numbers in the table come from?</strong> They&rsquo;re <em>learned during training</em>. When the model is first initialized, every embedding vector is random noise. During training, as the model processes trillions of tokens and adjusts its weights to get better at next-token prediction, the embedding vectors get adjusted too. Tokens that behave similarly in context gradually drift toward similar vectors. Tokens that behave differently drift apart.</p>
+<p>This is the key insight: <strong>nobody designed the embedding space.</strong> Nobody said &ldquo;dimension 47 should represent formality&rdquo; or &ldquo;dimension 2,000 should encode verb tense.&rdquo; The model discovered, through billions of gradient updates, that <em>this particular arrangement of 8,192 numbers</em> is the most useful way to represent each token for the task of predicting what comes next. The geometry of the space — which tokens are near which, what directions mean what — emerged from the data.</p>
+<p><strong>What does &ldquo;near each other&rdquo; actually look like?</strong> In a well-trained embedding space, you get relationships like:</p>
+<ul>
+<li>&ldquo;king&rdquo; and &ldquo;queen&rdquo; are close to each other (both royalty)</li>
+<li>&ldquo;king&rdquo; - &ldquo;man&rdquo; + &ldquo;woman&rdquo; ≈ &ldquo;queen&rdquo; (the famous word2vec result — directions in the space encode relationships)</li>
+<li>&ldquo;Python&rdquo; the language and &ldquo;Python&rdquo; the snake have <em>different</em> token contexts, so the model learns to represent them differently once context is applied (more on this when we get to attention)</li>
+</ul>
+<p><strong>Performance profile:</strong> Embedding lookup runs on the <strong>GPU</strong> and is <strong>memory-bandwidth bound</strong>. There&rsquo;s zero math — it&rsquo;s a gather operation, reading rows from HBM. The embedding table for Llama 3 70B is 128,000 × 8,192 × 2 bytes (FP16) ≈ <strong>2 GB</strong>. That fits easily in HBM and the lookup is nearly instantaneous. Embedding is never a bottleneck — it&rsquo;s the cheapest step in the entire pipeline.</p>
+<p><strong>One subtlety: there are actually two things called &ldquo;embeddings.&rdquo;</strong> The static embedding table gives each token the same vector regardless of context — &ldquo;bank&rdquo; gets the same initial vector whether it&rsquo;s a river bank or a financial bank. But after passing through the model&rsquo;s layers, each token&rsquo;s vector has been transformed based on everything around it. These <em>contextual</em> representations are also called embeddings (or hidden states). When people talk about &ldquo;embeddings&rdquo; in the context of semantic search or RAG, they usually mean the output of the full model (or a model specifically trained to produce them), not the raw lookup table.</p>
+
+  </div>
+
+  <nav class="llms-tree-nav">
+    
+      
+      
+      <div class="llms-nav-parent">
+        <span class="nav-label">Up:</span>
+        <a href="http://localhost:1313/llms/0-what-happens/">0 &mdash; What happens when you send a message to an LLM</a>
+      </div>
+      
+    
+
+    
+    <div class="llms-nav-children">
+      <span class="nav-label">Go deeper:</span>
+      <ul>
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/2b-weights/">2b &mdash; What are weights?</a></li>
+          
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/2c-gradients/">2c &mdash; Gradients and gradient updates (how weights get their values)</a></li>
+          
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/2d-directions/">2d &mdash; &#34;Directions in the space encode relationships&#34;</a></li>
+          
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/2e-model-layers/">2e &mdash; What are model layers?</a></li>
+          
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/2f-layer-transforms/">2f &mdash; How do layers transform vectors?</a></li>
+          
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/2g-hidden-states/">2g &mdash; What are hidden states?</a></li>
+          
+        
+      </ul>
+    </div>
+    
+
+    <div class="llms-nav-map">
+      <a href="/llms/">&larr; Back to the map</a>
+    </div>
+  </nav>
+</article>
+</main><footer class="site-footer">
+  <p>&copy; 2026 Wes Kennedy. All rights reserved.</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2d6a4f',
+      primaryTextColor: '#d8f3dc',
+      primaryBorderColor: '#1b4332',
+      lineColor: '#7c3aed',
+      secondaryColor: '#e76f51',
+      tertiaryColor: '#1a1a2e',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: '14px'
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How does &#34;thinking&#34; work? &ndash; Wes Kennedy</title>
+<meta name="description" content="Systems archaeologist by instinct, technical marketer by trade.">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/llms.css">
+
+</head>
+<body><header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="site-title">Wes Kennedy</a>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true">
+    <label for="menu-toggle" class="menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+    <nav class="menu-overlay">
+      <label for="menu-toggle" class="menu-close" aria-label="Close menu">&times;</label>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/llms/">LLMs</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/now/">Now</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main>
+<article class="llms-node">
+  <header class="llms-node-header">
+    <nav class="llms-breadcrumb">
+      <a href="/llms/">LLMs</a>
+      
+        
+        
+          <span class="sep">/</span>
+          <a href="http://localhost:1313/llms/0-what-happens/">0</a>
+        
+      
+      <span class="sep">/</span>
+      <span class="current">1e</span>
+    </nav>
+
+    <div class="llms-title-row">
+      <h1><span class="node-id-header">1e</span> How does &#34;thinking&#34; work?</h1>
+      <span class="llms-status-badge llms-status-unreviewed">unreviewed</span>
+    </div>
+  </header>
+
+  <div class="llms-content post-content">
+    <div class="mermaid">graph LR
+    A[User message] --> B[Tokenize + Embed] --> C["Layers ×80"]
+    C --> D{"Generate<br/>thinking<br/>tokens"}:::hl
+    D -->|"loop (hidden)"| C
+    D -->|"done thinking"| E{"Generate<br/>response<br/>tokens"}:::hl
+    E -->|"loop (visible)"| C
+    E --> F[Output to user]
+    classDef hl fill:#2d6a4f,stroke:#1b4332,color:#d8f3dc
+    classDef default fill:#1a1a2e,stroke:#16213e,color:#e0e0e0</div>
+<p>There is no separate &ldquo;thinking&rdquo; module. The model doesn&rsquo;t have an internal scratchpad or a different mode of processing. Thinking is just <strong>more token generation</strong> — the model produces tokens that happen to be reasoning steps before producing the tokens that are the answer.</p>
+<p><strong>Chain-of-thought (CoT)</strong> was the first version of this. Researchers discovered that if you prompt the model with &ldquo;Let&rsquo;s think step by step&rdquo; or show it examples that include intermediate reasoning, the model generates better answers because each reasoning token becomes part of the context for the next prediction. When the model writes &ldquo;First, let&rsquo;s consider X&hellip;&rdquo; those tokens go back through all 80 layers during the next decode step, giving the model access to information it just worked out. Without that intermediate text, the model has to make the full reasoning leap in a single next-token prediction — which is harder.</p>
+<p><strong>Extended thinking</strong> (as in Claude&rsquo;s thinking mode) takes this further. The model is trained to produce a dedicated thinking block — a long sequence of reasoning tokens that the user doesn&rsquo;t see — before generating the visible response. The mechanics are identical to normal generation: tokenize, embed, 80 layers, predict next token, loop. The only differences are:</p>
+<ol>
+<li>
+<p><strong>Training</strong>: the model was specifically trained (via RLHF or similar techniques) to produce useful reasoning in a designated thinking format before answering. It learned that generating intermediate steps leads to higher-quality final answers, so the training reward signal reinforced that behavior.</p>
+</li>
+<li>
+<p><strong>Token budget</strong>: thinking models are allowed (and encouraged) to generate many more tokens — sometimes thousands of reasoning tokens before the visible response begins. More thinking tokens = more &ldquo;passes&rdquo; through the 80 layers = more opportunity for the model to refine its internal representation of the problem.</p>
+</li>
+<li>
+<p><strong>Visibility</strong>: the thinking tokens are generated but can be hidden from the user in the API response. They still cost compute — every thinking token goes through the full forward pass — but the user only sees the final answer.</p>
+</li>
+</ol>
+<p><strong>What this means architecturally:</strong> thinking doesn&rsquo;t change any of the machinery we&rsquo;ve covered. Same tokenizer, same embeddings, same layers, same attention, same FFN, same prediction step. The model just generates more tokens before the ones you see. The &ldquo;intelligence&rdquo; improvement comes from the model having more sequential token-generation steps to work through a problem — each step refines the context that subsequent steps build on.</p>
+<p><strong>The implication is striking:</strong> the model&rsquo;s reasoning capability is directly proportional to the number of tokens it generates. A model forced to answer in 10 tokens will be worse at complex problems than the same model allowed 1,000 tokens of thinking. The weights are identical — the only difference is how many times the decode loop runs before producing the visible answer.</p>
+<p><strong>Performance profile:</strong> Thinking runs on the <strong>GPU</strong> and has the same performance characteristics as any other token generation — <strong>memory-bandwidth bound</strong> during decode. The cost is purely proportional to the number of thinking tokens generated. If the model thinks for 2,000 tokens before a 200-token response, the total compute is ~10× what the response alone would cost. This is why thinking models are more expensive to run: not because the architecture is different, but because they generate significantly more tokens per request. The KV cache also grows with thinking tokens — those K/V vectors must be stored and attended to just like any other tokens.</p>
+
+  </div>
+
+  <nav class="llms-tree-nav">
+    
+      
+      
+      <div class="llms-nav-parent">
+        <span class="nav-label">Up:</span>
+        <a href="http://localhost:1313/llms/0-what-happens/">0 &mdash; What happens when you send a message to an LLM</a>
+      </div>
+      
+    
+
+    
+    <div class="llms-nav-children">
+      <span class="nav-label">Go deeper:</span>
+      <ul>
+        
+          
+          
+          <li><a href="http://localhost:1313/llms/2k-planning/">2k &mdash; Planning and multi-step execution</a></li>
+          
+        
+      </ul>
+    </div>
+    
+
+    <div class="llms-nav-map">
+      <a href="/llms/">&larr; Back to the map</a>
+    </div>
+  </nav>
+</article>
+</main><footer class="site-footer">
+  <p>&copy; 2026 Wes Kennedy. All rights reserved.</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2d6a4f',
+      primaryTextColor: '#d8f3dc',
+      primaryBorderColor: '#1b4332',
+      lineColor: '#7c3aed',
+      secondaryColor: '#e76f51',
+      tertiaryColor: '#1a1a2e',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: '14px'
+    }
+  });
+</script>
+
+</body>
+</html>

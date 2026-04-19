@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What is a dot product? &ndash; Wes Kennedy</title>
+<meta name="description" content="Systems archaeologist by instinct, technical marketer by trade.">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/llms.css">
+
+</head>
+<body><header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="site-title">Wes Kennedy</a>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true">
+    <label for="menu-toggle" class="menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+    <nav class="menu-overlay">
+      <label for="menu-toggle" class="menu-close" aria-label="Close menu">&times;</label>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/llms/">LLMs</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/now/">Now</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main>
+<article class="llms-node">
+  <header class="llms-node-header">
+    <nav class="llms-breadcrumb">
+      <a href="/llms/">LLMs</a>
+      
+        
+        
+          <span class="sep">/</span>
+          <a href="http://localhost:1313/llms/1a-vectors/">1a</a>
+        
+      
+      <span class="sep">/</span>
+      <span class="current">2h</span>
+    </nav>
+
+    <div class="llms-title-row">
+      <h1><span class="node-id-header">2h</span> What is a dot product?</h1>
+      <span class="llms-status-badge llms-status-reviewed">reviewed</span>
+    </div>
+  </header>
+
+  <div class="llms-content post-content">
+    <div class="mermaid">graph LR
+    A[Input Text] --> B[Tokenizer] --> C[Token IDs] --> D[Embedding] --> E[Q,K,V Proj] --> F["Attn Scores<br/>(Q·K dot prod)"]:::hl --> G[Weighted Sum] --> H[Residual] --> I[FFN] --> J[Residual] --> K["→ ×80"] --> L["Vocab Proj<br/>(dot prod)"]:::hl --> M[Output]
+    classDef hl fill:#2d6a4f,stroke:#1b4332,color:#d8f3dc
+    classDef default fill:#1a1a2e,stroke:#16213e,color:#e0e0e0</div>
+<p><em>Highlighted: where dot products drive the computation</em></p>
+<p>Take two vectors of the same length. Multiply their elements in pairs, then add up the results. That&rsquo;s the entire operation:</p>
+<p><code>[2, 3, 1] · [4, -1, 5] = (2×4) + (3×-1) + (1×5) = 8 + (-3) + 5 = 10</code></p>
+<p>The result is a single number — a <strong>scalar</strong>, not a vector. That number tells you how much the two vectors point in the same direction:</p>
+<ul>
+<li><strong>Large positive</strong> → they point in similar directions (similar/related)</li>
+<li><strong>Zero</strong> → they&rsquo;re perpendicular (unrelated)</li>
+<li><strong>Negative</strong> → they point in opposite directions (dissimilar/contrasting)</li>
+</ul>
+<p>The magnitude matters too — not just the sign. A dot product of 150 means much stronger alignment than 3. The actual value depends on both the direction similarity <em>and</em> the length of the vectors, which is why in some contexts (like comparing embeddings for similarity) you normalize the vectors to unit length first, giving you <strong>cosine similarity</strong> — a dot product that&rsquo;s purely about direction, scaled between -1 and 1.</p>
+<p>In LLMs, dot products show up everywhere:</p>
+<ul>
+<li><strong>Attention</strong> uses dot products between query and key vectors to compute relevance scores between token pairs</li>
+<li><strong>The final prediction layer</strong> uses a dot product between the last hidden state and each vocabulary token&rsquo;s vector to score how likely each token is to come next</li>
+<li><strong>Embedding similarity</strong> (for search/retrieval) is measured by dot product or cosine similarity</li>
+</ul>
+<p>It&rsquo;s the fundamental &ldquo;comparison&rdquo; operation. Anytime the model needs to answer &ldquo;how similar are these two things?&rdquo; — it&rsquo;s a dot product.</p>
+<p><strong>Performance profile:</strong> A single dot product is trivial — for an 8,192-d vector, it&rsquo;s 8,192 multiplications and 8,192 additions. <strong>~16K FLOPs</strong>. On a B200 that takes nanoseconds. The cost only matters at scale. In <strong>attention</strong>, you compute T² dot products per head per layer — at T=100K with 64 heads across 80 layers, that&rsquo;s 100K² × 64 × 80 ≈ <strong>51 quadrillion</strong> individual dot products (each 128-d, since they&rsquo;re per-head). That&rsquo;s where the T² compute cost lives. During <strong>prefill</strong>, these are batched into massive matrix multiplications (the Q × K^T operation) and are <strong>compute-bound</strong> — the GPU does them efficiently as dense matmul. During <strong>decode</strong>, each new token only computes T dot products (one against every cached key), which is far less math but requires loading the entire KV cache from memory — making it <strong>memory-bandwidth bound</strong>.</p>
+
+  </div>
+
+  <nav class="llms-tree-nav">
+    
+      
+      
+      <div class="llms-nav-parent">
+        <span class="nav-label">Up:</span>
+        <a href="http://localhost:1313/llms/1a-vectors/">1a &mdash; What are vectors?</a>
+      </div>
+      
+    
+
+    
+
+    <div class="llms-nav-map">
+      <a href="/llms/">&larr; Back to the map</a>
+    </div>
+  </nav>
+</article>
+</main><footer class="site-footer">
+  <p>&copy; 2026 Wes Kennedy. All rights reserved.</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2d6a4f',
+      primaryTextColor: '#d8f3dc',
+      primaryBorderColor: '#1b4332',
+      lineColor: '#7c3aed',
+      secondaryColor: '#e76f51',
+      tertiaryColor: '#1a1a2e',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: '14px'
+    }
+  });
+</script>
+
+</body>
+</html>

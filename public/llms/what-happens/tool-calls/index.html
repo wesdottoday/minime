@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How do tool calls work? &ndash; Wes Kennedy</title>
+<meta name="description" content="Systems archaeologist by instinct, technical marketer by trade.">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/llms.css">
+
+</head>
+<body><header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="site-title">Wes Kennedy</a>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true">
+    <label for="menu-toggle" class="menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+    <nav class="menu-overlay">
+      <label for="menu-toggle" class="menu-close" aria-label="Close menu">&times;</label>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/series/">Series</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/now/">Now</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main>
+<article class="llms-node">
+  <header class="llms-node-header">
+    <nav class="llms-breadcrumb">
+      <a href="/llms/">LLMs</a>
+      
+      
+      
+      
+        
+          
+          
+            
+            
+            
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+      
+      
+      
+        
+          
+          
+          <span class="sep">/</span>
+          <a href="http://localhost:1313/llms/what-happens/">What happens when you send a message to an LLM</a>
+        
+      
+      <span class="sep">/</span>
+      <span class="current">How do tool calls work?</span>
+    </nav>
+
+    <h1>How do tool calls work?</h1>
+  </header>
+
+  <div class="llms-content post-content">
+    <div class="mermaid">graph LR
+    A[User message] --> B["Model generates<br/>tokens"]
+    B --> C{"Tool call<br/>token pattern?"}:::hl
+    C -->|"yes"| D["Parse tool call<br/>(name, args)"]:::hl
+    D --> E["Execute tool<br/>(external system)"]:::hl
+    E --> F["Tool result<br/>→ new tokens"]:::hl
+    F --> G["Model continues<br/>generating"]
+    C -->|"no"| H[Continue generating]
+    G --> H
+    H --> I[Output to user]
+    classDef hl fill:#2d6a4f,stroke:#1b4332,color:#d8f3dc
+    classDef default fill:#1a1a2e,stroke:#16213e,color:#e0e0e0
+
+    click A "/llms/what-happens/"
+    click B "/llms/what-happens/tokens/"
+    click F "/llms/what-happens/tokens/"
+    click I "/llms/what-happens/embeddings/model-layers/final-vector-to-token/"</div>
+<p>Tool calling is not a special capability baked into the model architecture. The model doesn&rsquo;t &ldquo;run code&rdquo; or &ldquo;access the internet.&rdquo; It generates text that happens to follow a specific structured format, and external software intercepts that text, executes the action, and feeds the result back as more text.</p>
+<p><strong>The mechanics:</strong></p>
+<ol>
+<li>
+<p><strong>Training</strong>: the model is trained on examples that include tool calls — structured output like <code>{&quot;tool&quot;: &quot;calculator&quot;, &quot;args&quot;: {&quot;expression&quot;: &quot;347 * 892&quot;}}</code> followed by a result like <code>{&quot;result&quot;: 309524}</code> followed by the model continuing with that information. Through the same <a href="/llms/what-happens/embeddings/gradients/">gradient descent</a> process (<a href="/llms/what-happens/embeddings/gradients/">gradients</a>), the model learns: when I need external information or computation, generating this structured format gets me a useful result that I can then use.</p>
+</li>
+<li>
+<p><strong>Prompting</strong>: when you use an API with tools enabled, the system prompt includes descriptions of available tools — their names, what they do, and what arguments they accept. This becomes part of the input token sequence the model attends to. The model doesn&rsquo;t &ldquo;know&rdquo; about tools innately — it sees the tool descriptions in its context and generates accordingly.</p>
+</li>
+<li>
+<p><strong>Generation</strong>: the model generates tokens one at a time (same <a href="/llms/what-happens/prefill-decode/">decode</a> loop as always). At some point it starts producing tokens that form a tool call pattern — typically a JSON structure with a tool name and arguments. There is nothing mechanically different about these tokens. The model is just predicting the next most likely token, and given its training and the tool descriptions in context, the most likely next tokens happen to form a well-structured tool call.</p>
+</li>
+<li>
+<p><strong>Interception</strong>: external software (the API server, the client application, the harness) monitors the model&rsquo;s output and detects when a complete tool call has been generated. It <strong>pauses generation</strong>, extracts the tool name and arguments, and executes the tool in the real world — running a web search, querying a database, executing code, reading a file.</p>
+</li>
+<li>
+<p><strong>Result injection</strong>: the tool&rsquo;s result gets formatted as text, <a href="/llms/what-happens/tokens/tokenization/">tokenized</a>, and appended to the conversation as if it were a new message. The model&rsquo;s context now includes everything prior plus the tool result.</p>
+</li>
+<li>
+<p><strong>Continuation</strong>: the model resumes generating, now with the tool result in its context. It attends to the result tokens through the normal <a href="/llms/what-happens/embeddings/model-layers/attention-deep-dive/">attention mechanism</a> and uses that information to formulate its response.</p>
+</li>
+</ol>
+<p><strong>What this means:</strong> the model never &ldquo;uses&rdquo; a tool. It generates text that <em>describes</em> a tool call. External software does the actual work and feeds the result back. The model&rsquo;s only contribution is knowing <em>when</em> to call a tool, <em>which</em> tool to call, and <em>what arguments</em> to pass — all of which it learned during training by seeing thousands of examples of successful tool use patterns.</p>
+<p><strong>Multi-step tool use</strong> works by repeating this loop. The model generates a tool call, gets a result, generates another tool call based on that result, gets another result, and so on — each step adding to the context. The model is doing the same thing it always does (predicting the next token given everything so far), but the &ldquo;everything so far&rdquo; now includes tool results that give it access to real-world information.</p>
+<p><strong>Performance profile:</strong> Tool calls don&rsquo;t change the model&rsquo;s compute characteristics — generating tool call tokens is the same decode loop (<strong>memory-bandwidth bound</strong>). The overhead is in the <strong>tool execution latency</strong>: the model pauses while the external system runs the tool. A web search might take 500ms-2s. A database query might take 50ms. During this time the GPU is idle (or serving other requests). The round-trip — generate call, pause for execution, inject result, resume generation — adds latency proportional to how many tools are called and how long each takes. The context also grows with each tool result, increasing <a href="/llms/what-happens/prefill-decode/kv-cache/">KV cache</a> usage and subsequent attention computation.</p>
+
+  </div>
+
+  <nav class="llms-tree-nav">
+    
+    
+      
+      
+      <div class="llms-nav-section llms-nav-item" data-href="/llms/what-happens/">
+        <span class="nav-label">Up:</span>
+        <span class="nav-read-badge">Read</span> <a href="/llms/what-happens/">What happens when you send a message to an LLM</a>
+      </div>
+      
+    
+
+    
+    
+    <div class="llms-nav-section">
+      <span class="nav-label">Go deeper:</span>
+      <ul class="llms-nav-list">
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/tool-calls/skills/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/tool-calls/skills/">Skills: abstraction over tool calls</a></li>
+          
+        
+      </ul>
+    </div>
+    
+
+    
+    
+    <div class="llms-nav-section">
+      <span class="nav-label">Also at this level:</span>
+      <ul class="llms-nav-list">
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/vectors/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/vectors/">What are vectors?</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/tokens/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/tokens/">What is a token?</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/embeddings/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/embeddings/">What are embeddings and how are they created?</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/prefill-decode/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/prefill-decode/">Prefill vs decode</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/thinking/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/thinking/">How does &#34;thinking&#34; work?</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/memory/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/memory/">How does memory work?</a></li>
+          
+        
+      </ul>
+    </div>
+    
+
+    <div class="llms-nav-map">
+      <a href="/llms/">&larr; Back to the map</a>
+    </div>
+  </nav>
+</article>
+
+<script>
+(function() {
+  var key = 'llms-visited';
+  var visited = JSON.parse(localStorage.getItem(key) || '[]');
+  var href = window.location.pathname;
+  if (visited.indexOf(href) === -1) {
+    visited.push(href);
+    localStorage.setItem(key, JSON.stringify(visited));
+  }
+  document.querySelectorAll('.llms-nav-item').forEach(function(item) {
+    if (visited.indexOf(item.getAttribute('data-href')) !== -1) {
+      item.classList.add('is-read');
+    }
+  });
+})();
+</script>
+</main><footer class="site-footer">
+  <p>&copy; 2026 Wes Kennedy. All rights reserved.</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2d6a4f',
+      primaryTextColor: '#d8f3dc',
+      primaryBorderColor: '#1b4332',
+      lineColor: '#7c3aed',
+      secondaryColor: '#e76f51',
+      tertiaryColor: '#1a1a2e',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: '14px'
+    }
+  });
+</script>
+
+</body>
+</html>

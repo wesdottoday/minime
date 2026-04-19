@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MQA and GQA: reducing cache size at the architecture level &ndash; Wes Kennedy</title>
+<meta name="description" content="Systems archaeologist by instinct, technical marketer by trade.">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/llms.css">
+
+</head>
+<body><header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="site-title">Wes Kennedy</a>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true">
+    <label for="menu-toggle" class="menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+    <nav class="menu-overlay">
+      <label for="menu-toggle" class="menu-close" aria-label="Close menu">&times;</label>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/series/">Series</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/now/">Now</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main>
+<article class="llms-node">
+  <header class="llms-node-header">
+    <nav class="llms-breadcrumb">
+      <a href="/llms/">LLMs</a>
+      
+      
+      
+      
+        
+          
+          
+            
+            
+            
+          
+        
+      
+        
+          
+          
+            
+            
+            
+          
+        
+      
+        
+          
+          
+            
+            
+            
+          
+        
+      
+        
+      
+        
+      
+      
+      
+      
+        
+          
+          
+          <span class="sep">/</span>
+          <a href="http://localhost:1313/llms/what-happens/">What happens when you send a message to an LLM</a>
+        
+          
+          
+          <span class="sep">/</span>
+          <a href="http://localhost:1313/llms/what-happens/prefill-decode/">Prefill vs decode</a>
+        
+          
+          
+          <span class="sep">/</span>
+          <a href="http://localhost:1313/llms/what-happens/prefill-decode/kv-cache/">KV cache and context memory costs</a>
+        
+      
+      <span class="sep">/</span>
+      <span class="current">MQA and GQA: reducing cache size at the architecture level</span>
+    </nav>
+
+    <h1>MQA and GQA: reducing cache size at the architecture level</h1>
+  </header>
+
+  <div class="llms-content post-content">
+    <div class="mermaid">graph TD
+    subgraph MHA["Multi-Head Attention (MHA)"]
+        direction LR
+        Q1a["Q₁"] --- K1a["K₁"]
+        Q2a["Q₂"] --- K2a["K₂"]
+        Q3a["Q₃"] --- K3a["K₃"]
+        Q4a["Q₄"] --- K4a["K₄"]
+    end
+    subgraph GQA["Grouped-Query Attention (GQA)"]
+        direction LR
+        Q1b["Q₁"] --- K1b["K₁"]
+        Q2b["Q₂"] --- K1b
+        Q3b["Q₃"] --- K2b["K₂"]
+        Q4b["Q₄"] --- K2b
+    end
+    subgraph MQA["Multi-Query Attention (MQA)"]
+        direction LR
+        Q1c["Q₁"] --- K1c["K₁"]
+        Q2c["Q₂"] --- K1c
+        Q3c["Q₃"] --- K1c
+        Q4c["Q₄"] --- K1c
+    end
+
+    style MHA fill:#1a1a2e,stroke:#16213e,color:#e0e0e0
+    style GQA fill:#2d6a4f,stroke:#1b4332,color:#d8f3dc
+    style MQA fill:#264653,stroke:#1a3340,color:#e0e0e0</div>
+<p><em>MHA: every query head has its own K/V. GQA: groups share K/V. MQA: all queries share one K/V.</em></p>
+<p>The problem: in standard Multi-Head Attention (MHA), each of the 64 heads has its own K and V projections, so the KV cache stores 64 sets of K and V per layer. Most of the KV cache cost comes from this multiplier.</p>
+<p><strong>Multi-Query Attention (MQA)</strong> — the extreme: all 64 query heads share a single K and a single V. Each head still has its own Q (so each head still produces different attention patterns), but they all look at the same keys and values. KV cache shrinks by <strong>64×</strong>.</p>
+<p>This was proposed by Noam Shazeer (2019) and the math is simple:</p>
+<ul>
+<li>MHA KV cache: <code>T × L × 2 × 64 × d_head × 2 bytes</code></li>
+<li>MQA KV cache: <code>T × L × 2 × 1 × d_head × 2 bytes</code></li>
+</ul>
+<p>For Llama 3 70B at T=100K: MHA = 262 GB → MQA = 4.1 GB. Enormous savings.</p>
+<p><strong>The catch:</strong> quality drops. With one shared K/V, all 64 heads are forced to attend to the same information — they can&rsquo;t specialize the way they do in MHA. The model loses representational power. In practice, MQA models need to be trained from scratch with this architecture — you can&rsquo;t just drop the extra K/V heads from a trained MHA model.</p>
+<p><strong>Grouped-Query Attention (GQA)</strong> — the compromise: instead of 64 independent KV heads (MHA) or 1 shared KV head (MQA), you use a small number of KV groups. Llama 3 70B uses <strong>8 KV heads</strong> shared across 64 query heads — every 8 query heads share one K/V pair.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Architecture</th>
+          <th>Query heads</th>
+          <th>KV heads</th>
+          <th>KV cache at T=100K</th>
+          <th>Quality impact</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>MHA</td>
+          <td>64</td>
+          <td>64</td>
+          <td>262 GB</td>
+          <td>Baseline</td>
+      </tr>
+      <tr>
+          <td>GQA (8 groups)</td>
+          <td>64</td>
+          <td>8</td>
+          <td>32.8 GB</td>
+          <td>Minimal</td>
+      </tr>
+      <tr>
+          <td>MQA</td>
+          <td>64</td>
+          <td>1</td>
+          <td>4.1 GB</td>
+          <td>Measurable</td>
+      </tr>
+  </tbody>
+</table>
+<p>GQA with 8 KV heads gives an <strong>8× reduction</strong> in <a href="/llms/what-happens/prefill-decode/kv-cache/">KV cache</a> size with negligible quality loss — research shows it matches MHA quality closely while being dramatically more memory-efficient. This is why nearly all modern large models (Llama 3, Mistral, Gemma) use GQA.</p>
+<p><strong>How it affects attention computation:</strong> The Q projections are the same size as MHA — 64 separate query heads, full expressiveness for attention patterns. Only the K and V projections shrink (from 64 sets to 8 sets), which also reduces the parameter count of each layer&rsquo;s attention weights. During the actual attention computation, each KV group&rsquo;s keys and values are broadcast to the 8 query heads that share them — no extra math, just reading the same data multiple times.</p>
+<p><strong>Performance profile:</strong> GQA/MQA is both a <strong>memory</strong> and <strong>bandwidth</strong> optimization. Memory: the KV cache is 8× smaller (GQA) or 64× smaller (MQA), directly determining whether long contexts fit in HBM. Bandwidth: during <a href="/llms/what-happens/prefill-decode/">decode</a>, reading 32.8 GB of KV cache (GQA) instead of 262 GB (MHA) is <strong>8× less data</strong> moved from HBM, which directly translates to faster decode. The compute is approximately unchanged — you&rsquo;re still doing 64 query heads worth of <a href="/llms/what-happens/embeddings/model-layers/attention-deep-dive/">attention score</a> computation, just reusing the same K/V data. The K/V projection step is slightly cheaper (fewer matrices), but that&rsquo;s a minor saving relative to the cache bandwidth win. This is a rare optimization that is almost purely upside — the quality trade-off is minimal and the memory/bandwidth savings are massive.</p>
+
+  </div>
+
+  <nav class="llms-tree-nav">
+    
+    
+      
+      
+      <div class="llms-nav-section llms-nav-item" data-href="/llms/what-happens/prefill-decode/kv-cache/">
+        <span class="nav-label">Up:</span>
+        <span class="nav-read-badge">Read</span> <a href="/llms/what-happens/prefill-decode/kv-cache/">KV cache and context memory costs</a>
+      </div>
+      
+    
+
+    
+    
+
+    
+    
+    <div class="llms-nav-section">
+      <span class="nav-label">Also at this level:</span>
+      <ul class="llms-nav-list">
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/prefill-decode/kv-cache/sparse-attention/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/prefill-decode/kv-cache/sparse-attention/">Sparse attention: skipping tokens you don&#39;t need</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/prefill-decode/kv-cache/attention-approximations/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/prefill-decode/kv-cache/attention-approximations/">Attention approximations: breaking the T² barrier differently</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/prefill-decode/kv-cache/quantization/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/prefill-decode/kv-cache/quantization/">What is quantization?</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/prefill-decode/kv-cache/paged-attention/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/prefill-decode/kv-cache/paged-attention/">Paged attention: virtual memory for KV cache</a></li>
+          
+        
+          
+          
+          <li class="llms-nav-item" data-href="/llms/what-happens/prefill-decode/kv-cache/kv-cache-offloading/"><span class="nav-read-badge">Read</span> <a href="/llms/what-happens/prefill-decode/kv-cache/kv-cache-offloading/">KV cache offloading: trading latency for capacity</a></li>
+          
+        
+      </ul>
+    </div>
+    
+
+    <div class="llms-nav-map">
+      <a href="/llms/">&larr; Back to the map</a>
+    </div>
+  </nav>
+</article>
+
+<script>
+(function() {
+  var key = 'llms-visited';
+  var visited = JSON.parse(localStorage.getItem(key) || '[]');
+  var href = window.location.pathname;
+  if (visited.indexOf(href) === -1) {
+    visited.push(href);
+    localStorage.setItem(key, JSON.stringify(visited));
+  }
+  document.querySelectorAll('.llms-nav-item').forEach(function(item) {
+    if (visited.indexOf(item.getAttribute('data-href')) !== -1) {
+      item.classList.add('is-read');
+    }
+  });
+})();
+</script>
+</main><footer class="site-footer">
+  <p>&copy; 2026 Wes Kennedy. All rights reserved.</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2d6a4f',
+      primaryTextColor: '#d8f3dc',
+      primaryBorderColor: '#1b4332',
+      lineColor: '#7c3aed',
+      secondaryColor: '#e76f51',
+      tertiaryColor: '#1a1a2e',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: '14px'
+    }
+  });
+</script>
+
+</body>
+</html>

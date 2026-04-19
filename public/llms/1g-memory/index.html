@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How does memory work? &ndash; Wes Kennedy</title>
+<meta name="description" content="Systems archaeologist by instinct, technical marketer by trade.">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/llms.css">
+
+</head>
+<body><header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="site-title">Wes Kennedy</a>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-hidden="true">
+    <label for="menu-toggle" class="menu-btn" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+    <nav class="menu-overlay">
+      <label for="menu-toggle" class="menu-close" aria-label="Close menu">&times;</label>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/llms/">LLMs</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/now/">Now</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main>
+<article class="llms-node">
+  <header class="llms-node-header">
+    <nav class="llms-breadcrumb">
+      <a href="/llms/">LLMs</a>
+      
+        
+        
+          <span class="sep">/</span>
+          <a href="http://localhost:1313/llms/0-what-happens/">0</a>
+        
+      
+      <span class="sep">/</span>
+      <span class="current">1g</span>
+    </nav>
+
+    <div class="llms-title-row">
+      <h1><span class="node-id-header">1g</span> How does memory work?</h1>
+      <span class="llms-status-badge llms-status-unreviewed">unreviewed</span>
+    </div>
+  </header>
+
+  <div class="llms-content post-content">
+    <div class="mermaid">graph LR
+    A["User message"] --> B["Harness checks<br/>memory store"]:::hl
+    B --> C["Retrieve relevant<br/>memories"]:::hl
+    C --> D["Inject into<br/>context"]:::hl
+    D --> E["Model sees memories<br/>as tokens"] --> F["Layers ×80"] --> G["Response"]
+    G --> H{"Save new<br/>memories?"}:::hl
+    H -->|"yes"| I["Write to<br/>memory store"]:::hl
+    classDef hl fill:#2d6a4f,stroke:#1b4332,color:#d8f3dc
+    classDef default fill:#1a1a2e,stroke:#16213e,color:#e0e0e0</div>
+<p>LLMs have no persistent memory. Every conversation starts from zero — the model has its weights (fixed, trained knowledge) and whatever tokens are in the current context window. When the context is gone, everything discussed is gone. &ldquo;Memory&rdquo; systems are external software that works around this limitation.</p>
+<p><strong>The common pattern — retrieval-augmented memory:</strong></p>
+<ol>
+<li>
+<p><strong>Storage</strong>: memories are text files, database entries, or vector embeddings stored outside the model. They persist between conversations on disk or in a database.</p>
+</li>
+<li>
+<p><strong>Retrieval at conversation start</strong>: when a new conversation begins, the harness (the software wrapping the model) queries the memory store for entries relevant to the current context — the user, the project, the topic. Retrieved memories get injected into the system prompt or early in the conversation as tokens the model can attend to.</p>
+</li>
+<li>
+<p><strong>Retrieval during conversation</strong>: as the conversation progresses, the harness may query the memory store for additional relevant memories based on what&rsquo;s being discussed.</p>
+</li>
+<li>
+<p><strong>Saving</strong>: when the model encounters something worth remembering, it can generate a structured output (similar to a tool call) that the harness intercepts and writes to the memory store. The model doesn&rsquo;t &ldquo;decide&rdquo; to remember — it generates tokens that match a save pattern, and external software does the actual persistence.</p>
+</li>
+</ol>
+<p><strong>How does the model know what to save?</strong> It doesn&rsquo;t, fundamentally. Through training (including RLHF and instruction tuning), the model learned patterns like &ldquo;when the user explicitly says &lsquo;remember this&rsquo;&rdquo; or &ldquo;when information seems like it would be useful in future conversations.&rdquo; But this is pattern matching on the text in context, not genuine metacognition. The model generates save-shaped output when the current context statistically resembles the training examples where saving was appropriate.</p>
+<p><strong>How does retrieval decide what&rsquo;s relevant?</strong> This is where embeddings and dot products come back. The most common approach:</p>
+<ol>
+<li>Each stored memory gets embedded — run through an embedding model to produce a vector that captures its semantic meaning.</li>
+<li>The current query (user message, or a summary of the current conversation) also gets embedded.</li>
+<li><strong>Dot product (or cosine similarity)</strong> between the query embedding and every stored memory embedding. Highest scores = most relevant memories.</li>
+<li>Top-K results get retrieved and injected into context.</li>
+</ol>
+<p>This is exactly the same &ldquo;similarity via dot product&rdquo; mechanism from <a href="/llms/2h-dot-product/">2h</a>, just applied to memory retrieval instead of attention. Memories that are semantically close to the current conversation get high similarity scores and get pulled in.</p>
+<p><strong>How does the model prioritize memories over other context?</strong> It doesn&rsquo;t — not through any special mechanism. Memories are tokens in the context, and the attention mechanism treats them like any other tokens. However, there are a few factors that give memories influence:</p>
+<ul>
+<li><strong>Positioning</strong>: memories are typically injected in the system prompt or early in the context. Some models pay more attention to early and recent tokens (a consequence of positional encoding patterns and how attention distributions tend to shape during training).</li>
+<li><strong>Framing</strong>: the harness usually frames memories with explicit instructions like &ldquo;The following are your saved memories about this user. Use these to personalize your response.&rdquo; The model learned during training to follow such instructions.</li>
+<li><strong>Training</strong>: models that support memory features are often specifically fine-tuned on conversations that include memory context, teaching the model to attend to and use memory tokens when they&rsquo;re present.</li>
+</ul>
+<p>There is no special &ldquo;memory attention head&rdquo; or weighted priority system. It&rsquo;s all regular attention — the model attends to memory tokens the same way it attends to any other token, and the training just makes it likely that relevant memory tokens will get high attention scores.</p>
+<p><strong>Different approaches across providers:</strong></p>
+<ul>
+<li><strong>File-based</strong> (like CLAUDE.md / memory files): memories are literal text files loaded into context at conversation start. Simple, transparent, user-editable. Retrieval is basic (load everything, or keyword matching).</li>
+<li><strong>Vector database-backed</strong>: memories are embedded and stored in a vector DB (Pinecone, Chroma, etc.). Retrieval uses embedding similarity. Scales to many memories because you only inject the most relevant ones, not all of them.</li>
+<li><strong>Conversation summarization</strong>: instead of saving specific memories, periodically summarize the conversation and store the summary. Less granular but captures overall patterns.</li>
+</ul>
+<p><strong>Performance profile:</strong> Memory systems add cost at two points. <strong>Retrieval</strong> (before the model runs) involves embedding the query and computing similarity against the memory store — this is a lightweight operation, typically running on CPU or a small embedding model, adding milliseconds. <strong>Context injection</strong> is where the real cost is: every memory added to context increases the input token count, increasing prefill compute (more tokens × all 80 layers) and KV cache usage. If you inject 2,000 tokens of memories into every conversation, that&rsquo;s 2,000 additional tokens processed through the full model on every request — non-trivial at scale, but usually worth the quality improvement.</p>
+
+  </div>
+
+  <nav class="llms-tree-nav">
+    
+      
+      
+      <div class="llms-nav-parent">
+        <span class="nav-label">Up:</span>
+        <a href="http://localhost:1313/llms/0-what-happens/">0 &mdash; What happens when you send a message to an LLM</a>
+      </div>
+      
+    
+
+    
+
+    <div class="llms-nav-map">
+      <a href="/llms/">&larr; Back to the map</a>
+    </div>
+  </nav>
+</article>
+</main><footer class="site-footer">
+  <p>&copy; 2026 Wes Kennedy. All rights reserved.</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#2d6a4f',
+      primaryTextColor: '#d8f3dc',
+      primaryBorderColor: '#1b4332',
+      lineColor: '#7c3aed',
+      secondaryColor: '#e76f51',
+      tertiaryColor: '#1a1a2e',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: '14px'
+    }
+  });
+</script>
+
+</body>
+</html>
