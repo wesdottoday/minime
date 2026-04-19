@@ -1,0 +1,291 @@
+/* ==========================================================================
+   LLMs Collection Styles
+   ========================================================================== */
+
+/* --- Mermaid Diagrams --- */
+
+.mermaid {
+  width: calc(100vw - 2rem);
+  max-width: 1100px;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  overflow-x: auto;
+  padding: 1.5rem 1rem;
+  background: #1a1a2e;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.mermaid svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
+@media (max-width: 600px) {
+  .mermaid {
+    width: calc(100vw - 1rem);
+    padding: 1rem 0.5rem;
+    border-radius: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* --- Landing Page --- */
+
+.llms-landing {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.llms-landing-header {
+  margin-bottom: 2rem;
+}
+
+.llms-landing-header h1 {
+  margin-bottom: 0.5rem;
+}
+
+.llms-intro {
+  color: var(--text-light);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+.clear-progress-btn {
+  margin-top: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  color: var(--text-light);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.clear-progress-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.llms-map {
+  margin-bottom: 3rem;
+}
+
+.llms-tier {
+  margin-bottom: 2.5rem;
+}
+
+.llms-tier h2 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-light);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.llms-node-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.llms-node-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: border-color 0.15s;
+  cursor: pointer;
+}
+
+.llms-node-card:hover {
+  border-color: var(--accent);
+}
+
+.node-card-link {
+  display: block;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.node-card-link:hover {
+  text-decoration: none;
+}
+
+.node-read-badge {
+  display: none;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: var(--text-light);
+  background: var(--border);
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  float: right;
+  margin-left: 0.5rem;
+}
+
+.llms-node-card.is-read {
+  opacity: 0.55;
+}
+
+.llms-node-card.is-read:hover {
+  opacity: 0.85;
+}
+
+.llms-node-card.is-read .node-read-badge {
+  display: inline-block;
+}
+
+.llms-node-card .node-title {
+  font-weight: 500;
+}
+
+.llms-node-card .node-summary {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: var(--text-light);
+  line-height: 1.5;
+}
+
+/* --- Node Page --- */
+
+.llms-node {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.llms-breadcrumb {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  margin-bottom: 1rem;
+}
+
+.llms-breadcrumb a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.llms-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.llms-breadcrumb .sep {
+  margin: 0 0.35rem;
+  color: var(--border);
+}
+
+.llms-breadcrumb .current {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-weight: 600;
+}
+
+.llms-node-header h1 {
+  margin-top: 0;
+  margin-bottom: 2rem;
+}
+
+/* --- Tree Navigation --- */
+
+.llms-tree-nav {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.llms-nav-section {
+  margin-bottom: 1.25rem;
+}
+
+.nav-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.llms-nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.llms-nav-list li {
+  padding: 0.3rem 0;
+}
+
+.nav-read-badge {
+  display: none;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: var(--text-light);
+  background: var(--border);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-right: 0.25rem;
+}
+
+.llms-nav-item.is-read .nav-read-badge {
+  display: inline-block;
+}
+
+.llms-nav-item.is-read a {
+  opacity: 0.55;
+}
+
+.llms-nav-section a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.llms-nav-section a:hover {
+  text-decoration: underline;
+}
+
+.llms-nav-map {
+  margin-top: 1.5rem;
+}
+
+.llms-nav-map a {
+  color: var(--text-light);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.llms-nav-map a:hover {
+  color: var(--accent);
+}
+
+/* --- Glossary Terms --- */
+
+.glossary-term {
+  border-bottom: 1px dotted var(--accent);
+  cursor: help;
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 600px) {
+  .llms-node-card a {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}

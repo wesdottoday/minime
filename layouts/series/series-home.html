@@ -1,0 +1,24 @@
+{{ define "main" }}
+<section class="series-landing">
+  <header class="series-landing-header">
+    <h1>{{ .Title }}</h1>
+    <p class="series-intro">{{ .Description }}</p>
+  </header>
+
+  <div class="series-grid">
+    {{- $series := slice -}}
+    {{- range .Site.Sections -}}
+      {{- if .Params.series_weight -}}
+        {{- $series = $series | append . -}}
+      {{- end -}}
+    {{- end -}}
+    {{- range sort $series "Params.series_weight" -}}
+    <a href="{{ .RelPermalink }}" class="series-card">
+      <h2 class="series-card-title">{{ .Title }}</h2>
+      <p class="series-card-description">{{ .Params.series_card_description }}</p>
+      <span class="series-card-count">{{ len .RegularPages }} articles</span>
+    </a>
+    {{- end -}}
+  </div>
+</section>
+{{ end }}

@@ -1,0 +1,106 @@
+{{ define "main" }}
+<article class="llms-node">
+  <header class="llms-node-header">
+    <nav class="llms-breadcrumb">
+      <a href="/llms/">LLMs</a>
+      {{/* Walk up the parent chain, collect ancestors, then render in order */}}
+      {{ $ancestors := slice }}
+      {{ $pid := .Params.parent }}
+      {{ range seq 5 }}
+        {{ with $pid }}
+          {{ $matches := where $.Site.RegularPages "Params.node_id" . }}
+          {{ if $matches }}
+            {{ $p := index $matches 0 }}
+            {{ $ancestors = $ancestors | append $p }}
+            {{ $pid = $p.Params.parent }}
+          {{ else }}
+            {{ $pid = "" }}
+          {{ end }}
+        {{ end }}
+      {{ end }}
+      {{/* Ancestors are in child-to-root order; reverse by iterating backward */}}
+      {{ $len := len $ancestors }}
+      {{ if gt $len 0 }}
+        {{ range seq $len }}
+          {{ $idx := sub $len . }}
+          {{ $anc := index $ancestors $idx }}
+          <span class="sep">/</span>
+          <a href="{{ $anc.Permalink }}">{{ $anc.Title }}</a>
+        {{ end }}
+      {{ end }}
+      <span class="sep">/</span>
+      <span class="current">{{ .Title }}</span>
+    </nav>
+
+    <h1>{{ .Title }}</h1>
+  </header>
+
+  <div class="llms-content post-content">
+    {{ .Content }}
+  </div>
+
+  <nav class="llms-tree-nav">
+    {{/* Up link */}}
+    {{ with .Params.parent }}
+      {{ $parentPages := where $.Site.RegularPages "Params.node_id" . }}
+      {{ with index $parentPages 0 }}
+      <div class="llms-nav-section llms-nav-item" data-href="{{ .RelPermalink }}">
+        <span class="nav-label">Up:</span>
+        <span class="nav-read-badge">Read</span> <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+      </div>
+      {{ end }}
+    {{ end }}
+
+    {{/* Children — go deeper */}}
+    {{ with .Params.children }}
+    <div class="llms-nav-section">
+      <span class="nav-label">Go deeper:</span>
+      <ul class="llms-nav-list">
+        {{ range . }}
+          {{ $childPages := where $.Site.RegularPages "Params.node_id" . }}
+          {{ with index $childPages 0 }}
+          <li class="llms-nav-item" data-href="{{ .RelPermalink }}"><span class="nav-read-badge">Read</span> <a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+          {{ end }}
+        {{ end }}
+      </ul>
+    </div>
+    {{ end }}
+
+    {{/* Siblings — also at this level */}}
+    {{ with .Params.siblings }}
+    <div class="llms-nav-section">
+      <span class="nav-label">Also at this level:</span>
+      <ul class="llms-nav-list">
+        {{ range . }}
+          {{ $sibPages := where $.Site.RegularPages "Params.node_id" . }}
+          {{ with index $sibPages 0 }}
+          <li class="llms-nav-item" data-href="{{ .RelPermalink }}"><span class="nav-read-badge">Read</span> <a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+          {{ end }}
+        {{ end }}
+      </ul>
+    </div>
+    {{ end }}
+
+    <div class="llms-nav-map">
+      <a href="/llms/">&larr; Back to the map</a>
+    </div>
+  </nav>
+</article>
+
+<script>
+(function() {
+  var key = 'llms-visited';
+  var visited = JSON.parse(localStorage.getItem(key) || '[]');
+  var href = window.location.pathname;
+  if (visited.indexOf(href) === -1) {
+    visited.push(href);
+    localStorage.setItem(key, JSON.stringify(visited));
+  }
+  document.querySelectorAll('.llms-nav-item').forEach(function(item) {
+    if (visited.indexOf(item.getAttribute('data-href')) !== -1) {
+      item.classList.add('is-read');
+    }
+  });
+})();
+</script>
+{{ end }}

@@ -6,12 +6,14 @@ title = "Wes Kennedy"
   author = "Wes Kennedy"
   description = "Systems archaeologist by instinct, technical marketer by trade."
   headshot = "/images/headshot.jpg"
-  copyright = "Wes Kennedy"
+  copyright = "Wes Kennedy - All content on this website is 100% reflective of the personal view of Wes Kennedy and is not the views of my employer, NVIDIA"
 
 [taxonomies]
   tag = "tags"
 
 [markup]
+  [markup.goldmark.renderer]
+    unsafe = true
   [markup.highlight]
     style = "friendly"
     noClasses = true

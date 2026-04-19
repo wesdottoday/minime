@@ -380,6 +380,76 @@ figcaption {
   font-weight: 500;
 }
 
+/* Series landing page */
+.series-landing {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.series-landing-header {
+  margin-bottom: 2rem;
+}
+
+.series-landing-header h1 {
+  margin-bottom: 0.5rem;
+}
+
+.series-intro {
+  color: var(--text-light);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.series-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  max-width: calc(3 * 260px + 2 * 0.75rem);
+}
+
+.series-card {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s;
+  cursor: pointer;
+}
+
+.series-card:hover {
+  border-color: var(--accent);
+  text-decoration: none;
+  color: var(--text);
+}
+
+.series-card-title {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0.35rem;
+}
+
+.series-card-description {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: var(--text-light);
+  line-height: 1.5;
+}
+
+.series-card-count {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
 /* Mobile */
 @media (max-width: 600px) {
   html {

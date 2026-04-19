@@ -1,0 +1,10 @@
+{{- $term := .Get 0 -}}
+{{- $glossary := site.Data.glossary -}}
+{{- $found := false -}}
+{{- range $glossary -}}
+  {{- if eq .term $term -}}
+    {{- $found = true -}}
+    <span class="glossary-term" title="{{ .short | default .expansion }}">{{ $term }}</span>
+  {{- end -}}
+{{- end -}}
+{{- if not $found }}{{ $term }}{{ end -}}

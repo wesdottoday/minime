@@ -3,7 +3,7 @@
   <h1>Tags</h1>
   <ul class="tag-list">
     {{ range .Pages }}
-    <li><a href="{{ .Permalink }}">{{ .Title | lower }}</a> ({{ .Count }})</li>
+    <li><a href="{{ .Permalink }}">{{ .Title | lower }}</a> ({{ len .Pages }})</li>
     {{ end }}
   </ul>
 </section>
