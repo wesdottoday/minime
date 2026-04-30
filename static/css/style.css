@@ -315,6 +315,17 @@ a:hover {
   background: var(--code-bg);
 }
 
+.post-content pre code[data-lang="markdown"] {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.post-content pre code[data-lang="markdown"] span[style*="display:flex"] {
+  display: block !important;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
 .post-content img {
   max-width: 100%;
   height: auto;
