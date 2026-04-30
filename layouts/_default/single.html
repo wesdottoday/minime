@@ -9,8 +9,21 @@
     </div>
     {{ end }}
   </header>
+  {{- $h2count := len (findRE `<h2` .Content) -}}
+  {{- if gt $h2count 3 }}
+  <div class="post-body">
+    <div class="post-toc">
+      <strong>Contents</strong>
+      {{ .TableOfContents }}
+    </div>
+    <div class="post-content">
+      {{ .Content }}
+    </div>
+  </div>
+  {{- else }}
   <div class="post-content">
     {{ .Content }}
   </div>
+  {{- end }}
 </article>
 {{ end }}

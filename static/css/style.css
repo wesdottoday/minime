@@ -461,6 +461,71 @@ figcaption {
   font-weight: 600;
 }
 
+/* Table of Contents */
+.post-toc {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.post-toc strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-light);
+}
+
+.post-toc nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.post-toc nav li {
+  margin-bottom: 0.3rem;
+}
+
+.post-toc nav a {
+  color: var(--text-light);
+  text-decoration: none;
+}
+
+.post-toc nav a:hover {
+  color: var(--accent);
+}
+
+@media (min-width: 1300px) {
+  .post-body {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .post-toc {
+    width: 200px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 2rem;
+    align-self: flex-start;
+    margin-left: calc(-200px - 2rem);
+    margin-bottom: 0;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  .post-body > .post-content {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 /* Mobile */
 @media (max-width: 600px) {
   html {
