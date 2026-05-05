@@ -92,7 +92,7 @@ My best thinking doesn't happen at a desk. It happens while I'm walking, driving
 
 The pipeline is simple. I record a voice memo on my phone using Apple Voice Memos. When I'm ready to process them, I tell Claude and it does the rest: converts the audio to WAV, runs it through whisper.cpp on my Mac's GPU, cleans up the transcript, and files the result into the vault.
 
-The transcription itself is the least interesting part. What matters is the cleanup. Whisper outputs raw text with no punctuation, no formatting, and garbled proper nouns. "Harsh aura" becomes #harish-arora (the PM of the product I cover) with a link to his people file. "KVBM" (KV Cache Block Manager) doesn't get autocorrected to "cable management." Product names, people names, technical terms all get fixed because Claude has the full vault as context. It knows what I'm likely talking about because it knows what I've been working on.
+The transcription itself is the least interesting part. What matters is the cleanup. Whisper outputs raw text with no punctuation, no formatting, and garbled proper nouns. "Jane dough" becomes #jane-doe (the PM of the product I cover) with a link to her people file. "KVBM" (KV Cache Block Manager) doesn't get autocorrected to "cable management." Product names, people names, technical terms all get fixed because Claude has the full vault as context. It knows what I'm likely talking about because it knows what I've been working on.
 
 Sometimes I talk directly to Claude in my memos. "Claude, file this under the Personal folder." "Strike that last part, I changed my mind." "This next section is a task, add it to the personal list." Claude listens. It parses those instructions out of the transcript and acts on them instead of including them in the output.
 
@@ -176,10 +176,10 @@ The shift is fundamental: task management becomes a byproduct of thinking out lo
 
 There's a `People/` folder in the vault with a file for everyone I interact with regularly. When someone gets tagged in a daily note or a meeting transcript, Claude checks if they have a file. If not, it creates one with their name, role, what they work on, and context from the interaction. If they already have a file, it adds a dated entry under an Interactions section with a summary of what we discussed.
 
-Over time, each person's file becomes a running log of every meeting and conversation. Remember Harish from the voice memo example? Here's what his people file looks like:
+Over time, each person's file becomes a running log of every meeting and conversation. Remember Jane from the voice memo example? Here's what her people file looks like:
 
 ```markdown
-# Harish Arora
+# Jane Doe
 
 ## Role
 - Principal Product Manager covering CMX/STX
@@ -192,7 +192,7 @@ Over time, each person's file becomes a running log of every meeting and convers
 - Key contact for CMX product information and proprietary content
 
 ## Interactions
-- 2026-03-30: Manager mentioned he'd introduce me to Harish
+- 2026-03-30: Manager mentioned he'd introduce me to Jane
 - 2026-03-31: Noted to reach out and schedule something
 - 2026-04-06: First 1:1 call. Clarified CMX vs STX distinction, explained KV cache storage acceleration model, discussed partner execution timeline, benchmarks/lab coordination as my role.
 - 2026-04-20: Led the partner biweekly sync. Introduced a teammate to present on hardware capabilities. Pushed for async progress with partner via Slack rather than limiting work to biweekly syncs.
