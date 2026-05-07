@@ -442,6 +442,20 @@ figcaption {
   font-weight: 500;
 }
 
+/* Home page series section */
+.home-series {
+  margin-bottom: 3rem;
+}
+
+.home-series h2 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.home-series .series-grid {
+  margin-top: 1rem;
+}
+
 /* Series landing page */
 .series-landing {
   max-width: var(--max-width);

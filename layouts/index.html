@@ -6,6 +6,26 @@
   <h1>{{ .Site.Params.author }}</h1>
   <p class="bio">{{ .Site.Params.description }}</p>
 </section>
+{{- $series := slice -}}
+{{- range .Site.Sections -}}
+  {{- if .Params.series_weight -}}
+    {{- $series = $series | append . -}}
+  {{- end -}}
+{{- end -}}
+{{- if $series }}
+<section class="home-series">
+  <h2>Series</h2>
+  <div class="series-grid">
+    {{- range sort $series "Params.series_weight" -}}
+    <a href="{{ .RelPermalink }}" class="series-card">
+      <h2 class="series-card-title">{{ .Title }}</h2>
+      <p class="series-card-description">{{ .Params.series_card_description }}</p>
+      <span class="series-card-count">{{ len .RegularPages }} articles</span>
+    </a>
+    {{- end -}}
+  </div>
+</section>
+{{- end }}
 <section class="home-posts">
   <h2>Recent Posts</h2>
   <ul class="post-list">
