@@ -1,3 +1,32 @@
 <footer class="site-footer">
   <p>&copy; {{ now.Year }} {{ .Site.Params.copyright | default .Site.Title }}. All rights reserved.</p>
 </footer>
+<script>
+(function() {
+  var overlay = document.createElement('div');
+  overlay.className = 'lightbox-overlay';
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', function() {
+    overlay.classList.remove('active');
+    setTimeout(function() { overlay.innerHTML = ''; }, 200);
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('active')) {
+      overlay.click();
+    }
+  });
+
+  document.querySelectorAll('.post-content img').forEach(function(img) {
+    img.addEventListener('click', function() {
+      var clone = document.createElement('img');
+      clone.src = img.src;
+      clone.alt = img.alt;
+      overlay.innerHTML = '';
+      overlay.appendChild(clone);
+      requestAnimationFrame(function() { overlay.classList.add('active'); });
+    });
+  });
+})();
+</script>

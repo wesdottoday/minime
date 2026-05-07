@@ -2,7 +2,7 @@
 <article class="post">
   <header class="post-header">
     <h1>{{ .Title }}</h1>
-    {{ if eq .Section "posts" }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "01/02/2006" }}</time>{{ end }}
+    {{ if eq .Section "posts" }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "01/02/2006" }}</time> · {{ .ReadingTime }} minute{{ if ne .ReadingTime 1 }}s{{ end }}{{ end }}
     {{ with .Params.tags }}
     <div class="post-tags">
       {{ range $i, $tag := . }}{{ if $i }}, {{ end }}<a href="{{ "/tags/" | relURL }}{{ $tag | urlize }}/">{{ $tag | lower }}</a>{{ end }}
@@ -20,6 +20,29 @@
       {{ .Content }}
     </div>
   </div>
+  <script>
+    (function() {
+      var links = document.querySelectorAll('.post-toc nav a');
+      if (!links.length) return;
+      var headings = [];
+      links.forEach(function(a) {
+        var id = a.getAttribute('href').slice(1);
+        var el = document.getElementById(id);
+        if (el) headings.push({ el: el, link: a });
+      });
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            links.forEach(function(a) { a.classList.remove('active'); });
+            headings.forEach(function(h) {
+              if (h.el === entry.target) h.link.classList.add('active');
+            });
+          }
+        });
+      }, { rootMargin: '0px 0px -70% 0px' });
+      headings.forEach(function(h) { observer.observe(h.el); });
+    })();
+  </script>
   {{- else }}
   <div class="post-content">
     {{ .Content }}

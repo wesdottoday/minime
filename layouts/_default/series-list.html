@@ -1,0 +1,27 @@
+{{ define "main" }}
+<section class="series-landing">
+  <header class="series-header">
+    <h1>{{ .Title }}</h1>
+    <p class="series-description">{{ .Description }}</p>
+    {{ with .Content }}
+    <div class="series-intro-content post-content">
+      {{ . }}
+    </div>
+    {{ end }}
+  </header>
+
+  {{ $articles := .Pages.ByWeight }}
+  <div class="series-article-list">
+    {{ range $i, $page := $articles }}
+    <a href="{{ .RelPermalink }}" class="series-article-item">
+      <span class="series-article-number">{{ add $i 1 }}</span>
+      <div class="series-article-info">
+        <h2 class="series-article-title">{{ .Title }}</h2>
+        {{ with .Params.summary }}<p class="series-article-summary">{{ . }}</p>{{ end }}
+        <span class="series-article-meta">{{ .ReadingTime }} min read</span>
+      </div>
+    </a>
+    {{ end }}
+  </div>
+</section>
+{{ end }}

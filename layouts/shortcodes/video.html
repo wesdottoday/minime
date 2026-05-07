@@ -1,0 +1,8 @@
+{{/* Video shortcode: {{< video src="/video/file.mp4" caption="Optional caption" >}} */}}
+<figure class="video-player">
+  <video controls playsinline preload="metadata" width="100%">
+    <source src="{{ .Get "src" }}" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  {{ with .Get "caption" }}<figcaption>{{ . }}</figcaption>{{ end }}
+</figure>
