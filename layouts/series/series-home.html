@@ -7,7 +7,7 @@
 
   <div class="series-grid">
     {{- $series := slice -}}
-    {{- range .Site.Sections -}}
+    {{- range .Sections -}}
       {{- if .Params.series_weight -}}
         {{- $series = $series | append . -}}
       {{- end -}}

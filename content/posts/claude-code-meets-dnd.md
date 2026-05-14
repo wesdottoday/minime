@@ -33,7 +33,7 @@ Claude fills that gap. I talk in fragments and half-formed concepts. Claude turn
 
 The pattern that emerged is simple: I give Claude a concept, usually in a few sentences. Claude expands it within the bounds of what we've already established. Then we pull on threads. Every concept has loose ends, and instead of filing them away for later, we follow them. All of them. Then reset and move to the next thing.
 
-This is exactly how I built the [LLMs: All the Rabbit Holes](https://wes.today/llms/) series. Follow a thread until it dead-ends or branches, then follow the branches. Sometimes a random thought pops in mid-conversation that has nothing to do with the current thread. That's fine. I add it inline when talking to Claude, it flags it as something to come back to, and keeps going. Nothing gets lost. My inputs are messy. The conversation is solid. The output is structured.
+This is exactly how I built the [LLMs: All the Rabbit Holes](https://wes.today/series/inference/) series. Follow a thread until it dead-ends or branches, then follow the branches. Sometimes a random thought pops in mid-conversation that has nothing to do with the current thread. That's fine. I add it inline when talking to Claude, it flags it as something to come back to, and keeps going. Nothing gets lost. My inputs are messy. The conversation is solid. The output is structured.
 
 Here's a real exchange from the session:
 

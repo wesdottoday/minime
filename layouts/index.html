@@ -7,9 +7,11 @@
   <p class="bio">{{ .Site.Params.description }}</p>
 </section>
 {{- $series := slice -}}
-{{- range .Site.Sections -}}
-  {{- if .Params.series_weight -}}
-    {{- $series = $series | append . -}}
+{{- with .Site.GetPage "series" -}}
+  {{- range .Sections -}}
+    {{- if .Params.series_weight -}}
+      {{- $series = $series | append . -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 {{- if $series }}
