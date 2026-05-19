@@ -4,7 +4,7 @@
     <nav class="llms-breadcrumb">
       <a href="/series/">Series</a>
       <span class="sep">/</span>
-      <a href="/series/inference/">Inference</a>
+      <a href="/series/training/">Training</a>
       {{/* Walk up the parent chain, collect ancestors, then render in order */}}
       {{ $ancestors := slice }}
       {{ $pid := .Params.parent }}
@@ -44,7 +44,7 @@
   <nav class="llms-tree-nav">
     {{/* Up link */}}
     {{ with .Params.parent }}
-      {{ $parentPages := where (where $.Site.RegularPages "Params.series" "inference") "Params.node_id" . }}
+      {{ $parentPages := where (where $.Site.RegularPages "Params.series" "training") "Params.node_id" . }}
       {{ with index $parentPages 0 }}
       <div class="llms-nav-section llms-nav-item" data-href="{{ .RelPermalink }}">
         <span class="nav-label">Up:</span>
@@ -59,7 +59,7 @@
       <span class="nav-label">Go deeper:</span>
       <ul class="llms-nav-list">
         {{ range . }}
-          {{ $childPages := where (where $.Site.RegularPages "Params.series" "inference") "Params.node_id" . }}
+          {{ $childPages := where (where $.Site.RegularPages "Params.series" "training") "Params.node_id" . }}
           {{ with index $childPages 0 }}
           <li class="llms-nav-item" data-href="{{ .RelPermalink }}"><span class="nav-read-badge">Read</span> <a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
           {{ end }}
@@ -74,7 +74,7 @@
       <span class="nav-label">Also at this level:</span>
       <ul class="llms-nav-list">
         {{ range . }}
-          {{ $sibPages := where (where $.Site.RegularPages "Params.series" "inference") "Params.node_id" . }}
+          {{ $sibPages := where (where $.Site.RegularPages "Params.series" "training") "Params.node_id" . }}
           {{ with index $sibPages 0 }}
           <li class="llms-nav-item" data-href="{{ .RelPermalink }}"><span class="nav-read-badge">Read</span> <a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
           {{ end }}
@@ -84,14 +84,14 @@
     {{ end }}
 
     <div class="llms-nav-map">
-      <a href="/series/inference/">&larr; Back to the map</a>
+      <a href="/series/training/">&larr; Back to the map</a>
     </div>
   </nav>
 </article>
 
 <script>
 (function() {
-  var key = 'inference-visited';
+  var key = 'training-visited';
   var visited = JSON.parse(localStorage.getItem(key) || '[]');
   var href = window.location.pathname;
   if (visited.indexOf(href) === -1) {

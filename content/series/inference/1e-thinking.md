@@ -47,7 +47,7 @@ There is no separate "thinking" module. The model doesn't have an internal scrat
 
 **Extended thinking** (as in Claude's thinking mode) takes this further. The model is trained to produce a dedicated thinking block — a long sequence of reasoning tokens that the user doesn't see — before generating the visible response. The mechanics are identical to normal generation: tokenize, embed, 80 layers, predict next token, loop. The only differences are:
 
-1. **Training**: the model was specifically trained (via RLHF or similar techniques) to produce useful reasoning in a designated thinking format before answering. It learned that generating intermediate steps leads to higher-quality final answers, so the training reward signal reinforced that behavior.
+1. **Training**: the model was specifically trained (via [RLHF](/series/training/train-from-scratch/post-training/preference-training/) or similar techniques) to produce useful reasoning in a designated thinking format before answering. It learned that generating intermediate steps leads to higher-quality final answers, so the training reward signal reinforced that behavior.
 
 2. **Token budget**: thinking models are allowed (and encouraged) to generate many more tokens — sometimes thousands of reasoning tokens before the visible response begins. More thinking tokens = more "passes" through the 80 layers = more opportunity for the model to refine its internal representation of the problem.
 
