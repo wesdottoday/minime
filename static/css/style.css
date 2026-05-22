@@ -52,7 +52,6 @@ a:hover {
 
 /* Header */
 .site-header {
-  border-bottom: 1px solid var(--border);
 }
 
 .header-inner {
