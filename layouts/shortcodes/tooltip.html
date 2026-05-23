@@ -1,0 +1,8 @@
+{{- $trigger := .Get "trigger" -}}
+<span class="sidenote-wrap">
+  <span class="sidenote-trigger" tabindex="0" role="button" aria-expanded="false">{{ $trigger }}</span>
+  <span class="sidenote-content" role="tooltip">
+    <button class="sidenote-close" aria-label="Close">&times;</button>
+    {{ .Inner | safeHTML }}
+  </span>
+</span>

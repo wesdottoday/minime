@@ -1,5 +1,14 @@
 {{ define "main" }}
 <article class="post">
+  {{ with .Params.hero }}
+  <div class="post-hero">
+    {{ $base := strings.TrimSuffix (path.Ext .) . }}
+    <picture>
+      <source srcset="{{ $base }}.webp" type="image/webp">
+      <img src="{{ . }}" alt="">
+    </picture>
+  </div>
+  {{ end }}
   <header class="post-header">
     <h1>{{ .Title }}</h1>
     {{ if eq .Section "posts" }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "01/02/2006" }}</time> · {{ .ReadingTime }} minute{{ if ne .ReadingTime 1 }}s{{ end }}{{ end }}

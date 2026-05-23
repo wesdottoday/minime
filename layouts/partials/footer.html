@@ -30,3 +30,78 @@
   });
 })();
 </script>
+<script>
+(function() {
+  var overlay = document.createElement('div');
+  overlay.className = 'sidenote-overlay';
+  document.body.appendChild(overlay);
+  var isDesktop = function() { return window.innerWidth >= 1100; };
+
+  function closeAll() {
+    document.querySelectorAll('.sidenote-content.gutter-open').forEach(function(c) {
+      c.classList.remove('gutter-open');
+      c.style.left = '';
+      c.style.top = '';
+    });
+    document.querySelectorAll('.sidenote-content.modal-open').forEach(function(c) {
+      c.classList.remove('modal-open');
+    });
+    overlay.classList.remove('active');
+  }
+
+  document.querySelectorAll('.sidenote-trigger').forEach(function(trigger) {
+    var wrap = trigger.closest('.sidenote-wrap');
+    var content = wrap.querySelector('.sidenote-content');
+    var closeBtn = content.querySelector('.sidenote-close');
+
+    function positionGutter() {
+      var main = document.querySelector('main');
+      var mainRect = main.getBoundingClientRect();
+      var triggerRect = trigger.getBoundingClientRect();
+      var gutterWidth = window.innerWidth - mainRect.right - 20;
+      content.style.width = Math.min(300, gutterWidth - 20) + 'px';
+      content.style.left = (mainRect.right + 20) + 'px';
+      content.classList.add('gutter-open');
+      var contentHeight = content.offsetHeight;
+      var idealTop = triggerRect.top;
+      var maxTop = window.innerHeight - contentHeight - 10;
+      content.style.top = Math.max(10, Math.min(idealTop, maxTop)) + 'px';
+    }
+
+    function openSidenote() {
+      var wasOpen = content.classList.contains('gutter-open') || content.classList.contains('modal-open');
+      closeAll();
+      if (wasOpen) return;
+
+      if (isDesktop()) {
+        positionGutter();
+      } else {
+        content.classList.add('modal-open');
+        overlay.classList.add('active');
+      }
+    }
+
+    trigger.addEventListener('click', openSidenote);
+    if (closeBtn) closeBtn.addEventListener('click', closeAll);
+
+    if (isDesktop()) {
+      var hoverTimeout;
+      trigger.addEventListener('mouseenter', function() {
+        clearTimeout(hoverTimeout);
+        closeAll();
+        positionGutter();
+      });
+      wrap.addEventListener('mouseleave', function() {
+        hoverTimeout = setTimeout(closeAll, 200);
+      });
+      content.addEventListener('mouseenter', function() { clearTimeout(hoverTimeout); });
+      content.addEventListener('mouseleave', function() { hoverTimeout = setTimeout(closeAll, 200); });
+    }
+  });
+
+  overlay.addEventListener('click', closeAll);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAll();
+  });
+})();
+</script>
