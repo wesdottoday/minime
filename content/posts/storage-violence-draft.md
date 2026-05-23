@@ -26,7 +26,7 @@ Let me explain.
 
 ### AI meets Storage
 
-I split my thinking of artificial intelligence, for the most part, into two buckets: [Training](/series/training/) and [Inference](/series/inference/). For the sake of this blog post, I'll be referencing numbers based on Llama 3 70B and then we will extrapolate some numbers for a 10T parameter MoE frontier model (_Note: This extrapolation is just math, I have no insight into Frontier Models_). Both Training and Inference have unique storage patterns that are worth exploring a bit deeper.
+I split my thinking of artificial intelligence, for the most part, into two buckets: [Training](/series/training/) and [Inference](/series/inference/). For the sake of this blog post, I'll be referencing numbers based on Llama 3 70B and then we will extrapolate some numbers for a 15T parameter MoE frontier model (_Note: This extrapolation is just math, I have no insight into Frontier Models_). Both Training and Inference have unique storage patterns that are worth exploring a bit deeper.
 
 ### Training Storage Patterns
 
