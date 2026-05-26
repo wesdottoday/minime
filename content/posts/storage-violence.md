@@ -4,10 +4,6 @@ date: 2026-05-22
 draft: false
 hero: /img/tyson-vs-atc.png
 url: /storage-violence
-_build:
-  list: never
-  publishResources: true
-  render: always
 ---
 
 Imagine you're working air traffic control. Every transmission is critical. None can be missed. None can be delayed. If you mess up, hundreds of people die. And every 30 minutes Mike Tyson walks in and punches you square in the face, because you owe him money. And he's coming to remind you every 30 minutes until you pay up. You can't go down. The planes don't stop. You're the only one on duty.
